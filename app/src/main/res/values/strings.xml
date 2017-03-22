@@ -7,4 +7,7 @@
     <string name="tutorial">Tutorial</string>
     <string name="about">About</string>
     <string name="custom">Custom</string>
+    <string name="distance">Distance:</string>
+    <string name="points">Points:</string>
+    <string name="total_score">Total Score:</string>
 </resources>
