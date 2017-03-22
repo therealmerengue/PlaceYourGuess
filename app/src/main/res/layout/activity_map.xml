@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.trm.placeyourguess.MapActivity">
+
+    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/frag_map"
+        android:name="com.google.android.gms.maps.SupportMapFragment" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/btn_confirm"
+        android:layout_margin="16dp"
+        android:text="Confirm"
+        android:layout_gravity="bottom|left"
+        android:enabled="false" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:src="@drawable/ic_cast_dark"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|right"
+        android:id="@+id/btn_switchToStreetView"
+        android:layout_margin="16dp" />
+
+</FrameLayout>
