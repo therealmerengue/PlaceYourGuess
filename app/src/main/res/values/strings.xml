@@ -10,4 +10,7 @@
     <string name="distance">Distance:</string>
     <string name="points">Points:</string>
     <string name="total_score">Total Score:</string>
+    <string name="new_location">New location</string>
+    <string name="score">Score:</string>
+    <string name="round">Round:</string>
 </resources>

@@ -42,7 +42,7 @@ public class MapActivity extends AppCompatActivity implements ScoreFragment.OnFr
         hideAndShowFragment(true);
 
         Intent intent = getIntent();
-        double[] passedCoords = intent.getDoubleArrayExtra(StreetViewActivity.TAG_LOCATION_COORDINATES);
+        double[] passedCoords = intent.getDoubleArrayExtra(StreetViewActivity.EXTRA_LOCATION_COORDINATES);
         mPassedLocationCoords = new LatLng(passedCoords[0], passedCoords[1]);
 
         mBtnConfirm = (Button) findViewById(R.id.btn_confirm);
@@ -73,10 +73,10 @@ public class MapActivity extends AppCompatActivity implements ScoreFragment.OnFr
 
                 hideAndShowFragment(false);
 
-                android.support.v4.app.FragmentManager fm = getSupportFragmentManager();
+                FragmentManager fm = getSupportFragmentManager();
                 ((ScoreFragment)fm.findFragmentById(R.id.frag_score)).setDistance(mGuessOffset);
 
-                mMap.setOnMapClickListener(null);
+                mMap.setOnMapClickListener(null); //no more clicks result in marker placement
             }
         });
 
@@ -113,7 +113,6 @@ public class MapActivity extends AppCompatActivity implements ScoreFragment.OnFr
 
     @Override
     public void onScoreFragmentInteraction() {
-
         Bundle resultData = new Bundle();
         resultData.putFloat(RESULT_KEY_DISTANCE, mGuessOffset);
         Intent intent = new Intent();

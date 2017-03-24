@@ -29,5 +29,8 @@ dependencies {
     compile 'com.android.support.constraint:constraint-layout:1.0.0-alpha9'
     compile 'com.google.android.gms:play-services:10.2.1'
     compile 'com.android.support:support-v4:25.3.0'
+    compile 'com.cocoahero.android:geojson:1.0.1@jar'
+    compile 'com.squareup.okio:okio:1.4.0'
+    compile 'commons-io:commons-io:2.4'
     testCompile 'junit:junit:4.12'
 }

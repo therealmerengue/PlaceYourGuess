@@ -9,11 +9,9 @@ public final class Settings {
 
     private static boolean streetNamesEnabled = true;
 
-    public static boolean isStreetNamesEnabled() {
-        return streetNamesEnabled;
-    }
+    public static boolean isStreetNamesEnabled() { return streetNamesEnabled; }
 
-    public static void setStreetNamesEnabled(boolean streetNamesEnabled) {
-        Settings.streetNamesEnabled = streetNamesEnabled;
-    }
+    public static void setStreetNamesEnabled(boolean streetNamesEnabled) { Settings.streetNamesEnabled = streetNamesEnabled; }
+
+    public static int getNumOfRounds() { return numOfRounds; }
 }

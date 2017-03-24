@@ -11,6 +11,27 @@
         android:layout_height="match_parent"
         class="com.google.android.gms.maps.SupportStreetViewPanoramaFragment" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/score"
+        android:id="@+id/txt_Score"
+        android:layout_gravity="top|right" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/round"
+        android:id="@+id/txt_Roundsleft"
+        android:layout_gravity="top|left" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/btn_changeLocation"
+        android:text="@string/new_location"
+        android:layout_gravity="bottom|left" />
+
     <android.support.design.widget.FloatingActionButton
         android:src="@drawable/ic_cast_dark"
         android:layout_width="wrap_content"

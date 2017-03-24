@@ -4,9 +4,9 @@ import android.content.Intent;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
-import android.widget.Toast;
+import android.widget.Button;
+import android.widget.TextView;
 
 import com.google.android.gms.maps.OnStreetViewPanoramaReadyCallback;
 import com.google.android.gms.maps.StreetViewPanorama;
@@ -18,13 +18,23 @@ import static com.example.trm.placeyourguess.MapActivity.RESULT_KEY_DISTANCE;
 public class StreetViewActivity extends AppCompatActivity {
 
     private FloatingActionButton mBtnSwitchToMap;
+    private TextView mTxtTotalScore;
+    private TextView mTxtRoundsLeft;
 
     private StreetViewPanorama mStreetViewPanorama;
-    private LatLng mLocationCoords = new LatLng(37.765927, -122.449972);
+    private LatLng mLocationCoords = new LatLng(0, 0);
 
-    static final String TAG_LOCATION_COORDINATES = "TAG_LOCATION_COORDINATES";
+    private LocationSelector mLocationSelector;
+
+    private int mTotalScore = 0;
+    private int mRoundNumber = 1;
+    private String mCountryCode = "US";
+
+    static final String EXTRA_LOCATION_COORDINATES = "EXTRA_LOCATION_COORDINATES";
 
     static final int REQ_MAP_ACTIVITY = 100;
+
+    static final String RESULT_KEY_SCORE = "SCORE";
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -36,8 +46,16 @@ public class StreetViewActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(StreetViewActivity.this, MapActivity.class);
-                intent.putExtra(TAG_LOCATION_COORDINATES, new double[] {mLocationCoords.latitude, mLocationCoords.longitude});
+                intent.putExtra(EXTRA_LOCATION_COORDINATES, new double[] {mLocationCoords.latitude, mLocationCoords.longitude});
                 startActivityForResult(intent, REQ_MAP_ACTIVITY);
+            }
+        });
+
+        final Button btnChangeLocation = (Button) findViewById(R.id.btn_changeLocation);
+        btnChangeLocation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mLocationSelector.switchPanorama("US");
             }
         });
 
@@ -46,16 +64,24 @@ public class StreetViewActivity extends AppCompatActivity {
 
         streetViewPanoramaFragment.getStreetViewPanoramaAsync(new OnStreetViewPanoramaReadyCallback() {
                 @Override
-                public void onStreetViewPanoramaReady(StreetViewPanorama panorama) {
+                public void onStreetViewPanoramaReady(final StreetViewPanorama panorama) {
                     mStreetViewPanorama = panorama;
+
                     mStreetViewPanorama.setStreetNamesEnabled(Settings.isStreetNamesEnabled());
                     mStreetViewPanorama.setUserNavigationEnabled(true);
                     mStreetViewPanorama.setZoomGesturesEnabled(true);
                     mStreetViewPanorama.setPanningGesturesEnabled(true);
 
-                    mStreetViewPanorama.setPosition(mLocationCoords);
+                    mLocationSelector = new LocationSelector(mStreetViewPanorama, StreetViewActivity.this);
+                    mLocationSelector.switchPanorama("US");
                 }
             });
+
+        mTxtTotalScore = (TextView) findViewById(R.id.txt_Score);
+        updateScoreTextview();
+
+        mTxtRoundsLeft = (TextView) findViewById(R.id.txt_Roundsleft);
+        updateRoundsLeftTextview();
     }
 
     @Override
@@ -65,13 +91,42 @@ public class StreetViewActivity extends AppCompatActivity {
         switch (requestCode) {
             case REQ_MAP_ACTIVITY:
                 if (resultCode == RESULT_OK) {
-                    Bundle res = data.getExtras();
-                    float distance = res.getFloat(RESULT_KEY_DISTANCE); //TODO: calculate points based on that
+                    mRoundNumber++;
+                    if (mRoundNumber <= Settings.getNumOfRounds()) {
+                        Bundle resultData = data.getExtras();
+                        float distance = resultData.getFloat(RESULT_KEY_DISTANCE); //TODO: calculate points based on that instead of adding it straight to score
+                        mTotalScore += Math.round(distance);
+                        updateScoreTextview();
+                        mLocationSelector.switchPanorama(mCountryCode);
+                        updateRoundsLeftTextview();
+                    } else {
+                        Bundle resultData = new Bundle();
+                        resultData.putInt(RESULT_KEY_SCORE, mTotalScore);
+                        Intent intent = new Intent();
+                        intent.putExtras(resultData);
+                        setResult(RESULT_OK, intent);
 
-                    mStreetViewPanorama.setPosition(new LatLng(40.758896, -73.985130));
+                        finish();
+                    }
                 }
+                break;
+
+            default:
                 break;
         }
     }
 
+    public void setLocationCoords(LatLng coords) {
+        mLocationCoords = coords;
+    }
+
+    private void updateScoreTextview() {
+        String label = getResources().getString(R.string.score) + " " + mTotalScore;
+        mTxtTotalScore.setText(label);
+    }
+
+    private void updateRoundsLeftTextview() {
+        String label = getResources().getString(R.string.round) + " " + mRoundNumber + "/" + Settings.getNumOfRounds();
+        mTxtRoundsLeft.setText(label);
+    }
 }

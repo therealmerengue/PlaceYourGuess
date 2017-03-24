@@ -5,10 +5,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
+
+import java.io.FileReader;
+import java.io.InputStream;
 
 public class MainActivity extends AppCompatActivity {
 
     private Button btnSingleplayer;
+
+    private static final int REQ_STREET_ACTIVITY = 101;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,8 +26,28 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, StreetViewActivity.class);
-                startActivity(intent);
+                startActivityForResult(intent, REQ_STREET_ACTIVITY);
             }
         });
+
+        InputStream boxesStream = getResources().openRawResource(R.raw.boxes);
+        BoundingBoxesHolder bbHolder = BoundingBoxesHolder.getInstance();
+        bbHolder.loadBoxes(boxesStream);
+
+        InputStream countriesStream = getResources().openRawResource(R.raw.codes);
+        bbHolder.loadCountries(countriesStream);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        switch (requestCode) {
+            case REQ_STREET_ACTIVITY:
+                Bundle resultData = data.getExtras();
+                int score = resultData.getInt(StreetViewActivity.RESULT_KEY_SCORE);
+                Toast.makeText(this, Integer.toString(score), Toast.LENGTH_LONG).show(); //TODO: replace with screen presenting score
+                break;
+        }
     }
 }
