@@ -1,18 +1,19 @@
 package com.example.trm.placeyourguess;
 
 import android.content.Intent;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import java.io.FileReader;
 import java.io.InputStream;
 
 public class MainActivity extends AppCompatActivity {
 
     private Button btnSingleplayer;
+    private FloatingActionButton btnSettings;
 
     private static final int REQ_STREET_ACTIVITY = 101;
 
@@ -27,6 +28,15 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, StreetViewActivity.class);
                 startActivityForResult(intent, REQ_STREET_ACTIVITY);
+            }
+        });
+
+        btnSettings = (FloatingActionButton) findViewById(R.id.btn_settings);
+        btnSettings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+                startActivity(intent);
             }
         });
 

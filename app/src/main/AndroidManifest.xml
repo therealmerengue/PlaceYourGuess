@@ -24,7 +24,10 @@
             </intent-filter>
         </activity>
         <activity android:name=".StreetViewActivity" />
-        <activity android:name=".MapActivity"></activity>
+        <activity android:name=".MapActivity" />
+        <activity android:name=".SettingsActivity"
+            android:theme="@style/AppThemeSettings"
+            android:label="Settings"/>
     </application>
 
 </manifest>

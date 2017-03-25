@@ -13,4 +13,8 @@
     <string name="new_location">New location</string>
     <string name="score">Score:</string>
     <string name="round">Round:</string>
+    <string name="settings_timerLimit">timerLimit</string>
+    <string name="settings_numOfRounds">numberOfRounds</string>
+    <string name="settings_hintsEnabled">hintsEnabled</string>
+    <string name="confirm">Confirm</string>
 </resources>

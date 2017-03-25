@@ -19,12 +19,18 @@
         android:id="@+id/frag_score"
         android:name="com.example.trm.placeyourguess.ScoreFragment" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/txt_RoundTimer"
+        android:layout_gravity="top|center"/>
+
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/btn_confirm"
         android:layout_margin="16dp"
-        android:text="Confirm"
+        android:text="@string/confirm"
         android:layout_gravity="bottom|left"
         android:enabled="false" />
 

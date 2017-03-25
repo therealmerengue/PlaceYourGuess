@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <SwitchPreference
+        android:title="Hints"
+        android:summary="Hints will make it easier for you to guess the location, you noob."
+        android:defaultValue="false"
+        android:key="@string/settings_hintsEnabled"
+        android:checked="false" />
+    <ListPreference
+        android:title="Number of rounds"
+        android:summary="Set the number of rounds in each game."
+        android:defaultValue="5"
+        android:entries="@array/listRoundValues"
+        android:entryValues="@array/listRoundValues"
+        android:key="@string/settings_numOfRounds"/>
+    <ListPreference
+        android:title="Timer"
+        android:summary="Choose the time limit to make each guess."
+        android:defaultValue="0"
+        android:entries="@array/listTimerArray"
+        android:entryValues="@array/listTimerValues"
+        android:key="@string/settings_timerLimit"/>
+</PreferenceScreen>
