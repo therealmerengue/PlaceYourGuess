@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -16,34 +17,41 @@
         android:layout_height="wrap_content"
         android:text="@string/score"
         android:id="@+id/txt_Score"
-        android:layout_gravity="top|right" />
+        android:layout_gravity="top|right"
+        android:textSize="20sp"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/round"
         android:id="@+id/txt_Roundsleft"
-        android:layout_gravity="top|left" />
+        android:layout_gravity="top|left"
+        android:textSize="20sp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/txt_Timer"
-        android:layout_gravity="top|center" />
+        android:layout_gravity="top|center"
+        android:textSize="25sp" />
 
     <Button
+        android:id="@+id/btn_changeLocation"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/btn_changeLocation"
+        android:layout_gravity="bottom|left"
+        android:layout_margin="16dp"
+        android:backgroundTint="@color/colorPrimaryDark"
         android:text="@string/new_location"
-        android:layout_gravity="bottom|left" />
+        android:textColor="#fff" />
 
     <android.support.design.widget.FloatingActionButton
-        android:src="@drawable/ic_cast_dark"
+        android:id="@+id/btn_switchToMapView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|right"
-        android:id="@+id/btn_switchToMapView"
-        android:layout_margin="16dp" />
+        android:layout_margin="16dp"
+        android:src="@drawable/ic_cast_dark"
+        app:backgroundTint="@color/colorPrimaryDark" />
 
 </FrameLayout>

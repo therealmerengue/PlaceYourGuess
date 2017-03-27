@@ -2,6 +2,7 @@ package com.example.trm.placeyourguess;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,7 +30,7 @@ public class ScoreFragment extends Fragment {
 
         mTxtDistance = (TextView) fragmentView.findViewById(R.id.txt_Distance);
 
-        ImageButton btnNextLocation = (ImageButton) fragmentView.findViewById(R.id.btn_nextLocation);
+        FloatingActionButton btnNextLocation = (FloatingActionButton) fragmentView.findViewById(R.id.btn_nextLocation);
         btnNextLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

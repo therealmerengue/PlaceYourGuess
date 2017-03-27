@@ -1,6 +1,7 @@
 package com.example.trm.placeyourguess;
 
 import android.os.CountDownTimer;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.content.Intent;
 import android.graphics.Color;
@@ -30,6 +31,7 @@ public class MapActivity extends AppCompatActivity implements ScoreFragment.OnFr
     private LatLng mPassedLocationCoords;
 
     private Button mBtnConfirm;
+    private FloatingActionButton mBtnSwitchToStreetView;
     private TextView mTxtRoundTimer;
 
     private CountDownTimer mRoundTimer;
@@ -50,6 +52,14 @@ public class MapActivity extends AppCompatActivity implements ScoreFragment.OnFr
         Intent intent = getIntent();
         double[] passedCoords = intent.getDoubleArrayExtra(StreetViewActivity.EXTRA_LOCATION_COORDINATES);
         mPassedLocationCoords = new LatLng(passedCoords[0], passedCoords[1]);
+
+        mBtnSwitchToStreetView = (FloatingActionButton) findViewById(R.id.btn_switchToStreetView);
+        mBtnSwitchToStreetView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onBackPressed(); //TODO: check if this doesn't break anything :|
+            }
+        });
 
         mBtnConfirm = (Button) findViewById(R.id.btn_confirm);
         mBtnConfirm.setOnClickListener(new View.OnClickListener() {

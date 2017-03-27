@@ -100,7 +100,6 @@ public class StreetViewActivity extends AppCompatActivity {
         mTimerLimit = Integer.parseInt(timerLimitStr);
 
         mTxtTimer = (TextView) findViewById(R.id.txt_Timer);
-        //setupCountDownTimer();
     }
 
     @Override
@@ -119,7 +118,6 @@ public class StreetViewActivity extends AppCompatActivity {
                         updateScoreTextview();
                         mLocationSelector.switchPanorama(mCountryCode);
                         updateRoundsLeftTextview();
-                        //setupCountDownTimer();
                     } else {
                         Bundle streetViewActivityResult = new Bundle();
                         streetViewActivityResult.putInt(RESULT_KEY_SCORE, mTotalScore);
