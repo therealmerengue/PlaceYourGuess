@@ -210,8 +210,7 @@ public class LocationSelector {
 
             LatLng location = new LatLng(lat, lng);
             mPanorama.setPosition(location);
-            mContextActivity.setLocationCoords(location);
-            mContextActivity.setupCountDownTimer();
+            mContextActivity.setupCountDownTimer(true);
         }
     }
 }

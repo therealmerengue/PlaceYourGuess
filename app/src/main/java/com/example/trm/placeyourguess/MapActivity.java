@@ -35,8 +35,15 @@ public class MapActivity extends AppCompatActivity implements ScoreFragment.OnFr
     private TextView mTxtRoundTimer;
 
     private CountDownTimer mRoundTimer;
+    private long mTimerValue;
 
+    //activity result variable keys
     final static String RESULT_KEY_DISTANCE = "DISTANCE";
+
+    //SaveInstanceState variable keys
+    private final static String KEY_SAVED_STATE_TIMER_VALUE = "TIMER";
+    private final static String KEY_SAVED_STATE_PASSED_LAT = "PASSED_LAT";
+    private final static String KEY_SAVED_STATE_PASSED_LNG = "PASSED_LNG";
 
     private float mGuessOffset;
     private long mPassedTimeLeft;
@@ -49,15 +56,22 @@ public class MapActivity extends AppCompatActivity implements ScoreFragment.OnFr
         ScoreFragment.newInstance();
         hideAndShowFragment(true);
 
+
         Intent intent = getIntent();
-        double[] passedCoords = intent.getDoubleArrayExtra(StreetViewActivity.EXTRA_LOCATION_COORDINATES);
+        double[] passedCoords = new double[2];
+        if (savedInstanceState == null) {
+            passedCoords = intent.getDoubleArrayExtra(StreetViewActivity.EXTRA_LOCATION_COORDINATES);
+        } else {
+            passedCoords[0] = savedInstanceState.getDouble(KEY_SAVED_STATE_PASSED_LAT);
+            passedCoords[1] = savedInstanceState.getDouble(KEY_SAVED_STATE_PASSED_LNG);
+        }
         mPassedLocationCoords = new LatLng(passedCoords[0], passedCoords[1]);
 
         mBtnSwitchToStreetView = (FloatingActionButton) findViewById(R.id.btn_switchToStreetView);
         mBtnSwitchToStreetView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onBackPressed(); //TODO: check if this doesn't break anything :|
+                onBackPressed();
             }
         });
 
@@ -95,31 +109,13 @@ public class MapActivity extends AppCompatActivity implements ScoreFragment.OnFr
             }
         });
 
-        mPassedTimeLeft = intent.getLongExtra(StreetViewActivity.EXTRA_TIMER_LEFT, -1);
-        if (mPassedTimeLeft != -1) {
-            mTxtRoundTimer = (TextView) findViewById(R.id.txt_RoundTimer);
-            mTxtRoundTimer.setText("Time left: " + mPassedTimeLeft);
-
-            if (mPassedTimeLeft == 0) {
-                showScore(0);
-            } else {
-                mRoundTimer = new CountDownTimer(mPassedTimeLeft * 1000, 1000) {
-                    @Override
-                    public void onTick(long millisUntilFinished) {
-                        mTxtRoundTimer.setText("Time left: " + millisUntilFinished / 1000);
-                    }
-
-                    @Override
-                    public void onFinish() {
-                        if (mMap != null) {
-                            disableMapControls();
-                        }
-                        mTxtRoundTimer.setText("Time left: " + 0);
-                        showScore(0);
-                    }
-                }.start();
-            }
+        //INITIALIZING TIMER
+        if (savedInstanceState == null) {
+            mPassedTimeLeft = intent.getLongExtra(StreetViewActivity.EXTRA_TIMER_LEFT, -1);
+        } else {
+            mPassedTimeLeft = savedInstanceState.getLong(KEY_SAVED_STATE_TIMER_VALUE);
         }
+        initTimer();
 
         mFragMap = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.frag_map);
         mFragMap.getMapAsync(new OnMapReadyCallback() {
@@ -153,6 +149,15 @@ public class MapActivity extends AppCompatActivity implements ScoreFragment.OnFr
         if (mRoundTimer != null) {
             mRoundTimer.cancel();
         }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putLong(KEY_SAVED_STATE_TIMER_VALUE, mTimerValue);
+
+        outState.putDouble(KEY_SAVED_STATE_PASSED_LAT, mPassedLocationCoords.latitude);
+        outState.putDouble(KEY_SAVED_STATE_PASSED_LNG, mPassedLocationCoords.longitude);
     }
 
     public void hideAndShowFragment(boolean hide) {
@@ -190,8 +195,36 @@ public class MapActivity extends AppCompatActivity implements ScoreFragment.OnFr
     }
 
     private void showScore(float distance) {
-        hideAndShowFragment(false); //TODO: it crashed here once no idea why :|
+        hideAndShowFragment(false);
         FragmentManager fm = getSupportFragmentManager();
         ((ScoreFragment)fm.findFragmentById(R.id.frag_score)).setDistance(distance);
+    }
+
+    private void initTimer() {
+        if (mPassedTimeLeft != -1) {
+            mTxtRoundTimer = (TextView) findViewById(R.id.txt_RoundTimer);
+            mTxtRoundTimer.setText("Time left: " + mPassedTimeLeft);
+
+            if (mPassedTimeLeft == 0) {
+                showScore(0);
+            } else {
+                mRoundTimer = new CountDownTimer(mPassedTimeLeft * 1000, 1000) {
+                    @Override
+                    public void onTick(long millisUntilFinished) {
+                        mTxtRoundTimer.setText("Time left: " + millisUntilFinished / 1000);
+                        mTimerValue = millisUntilFinished / 1000;
+                    }
+
+                    @Override
+                    public void onFinish() {
+                        if (mMap != null) {
+                            disableMapControls();
+                        }
+                        mTxtRoundTimer.setText("Time left: " + 0);
+                        showScore(0);
+                    }
+                }.start();
+            }
+        }
     }
 }
