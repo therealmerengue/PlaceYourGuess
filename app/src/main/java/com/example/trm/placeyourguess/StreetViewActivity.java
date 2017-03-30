@@ -17,7 +17,6 @@ import com.google.android.gms.maps.StreetViewPanorama;
 import com.google.android.gms.maps.SupportStreetViewPanoramaFragment;
 import com.google.android.gms.maps.model.LatLng;
 
-import static android.R.attr.data;
 import static com.example.trm.placeyourguess.MapActivity.RESULT_KEY_DISTANCE;
 
 public class StreetViewActivity extends AppCompatActivity {
@@ -63,6 +62,7 @@ public class StreetViewActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_street_view);
 
+        //btnSwitchToMap
         mBtnSwitchToMap = (FloatingActionButton) findViewById(R.id.btn_switchToMapView);
         mBtnSwitchToMap.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -71,22 +71,26 @@ public class StreetViewActivity extends AppCompatActivity {
             }
         });
 
+        //totalScore
         if (savedInstanceState != null) {
             mTotalScore = savedInstanceState.getInt(KEY_SAVED_STATE_TOTAL_SCORE);
         }
         mTxtTotalScore = (TextView) findViewById(R.id.txt_Score);
         updateScoreTextview();
 
+        //numberOfRounds
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         String numberOfRoundsStr = preferences.getString(getString(R.string.settings_numOfRounds), "5");
         mNumberOfRounds = Integer.parseInt(numberOfRoundsStr);
 
+        //roundNumber
         if (savedInstanceState != null) {
             mRoundNumber = savedInstanceState.getInt(KEY_SAVED_STATE_ROUND_NUMBER);
         }
         mTxtRoundsLeft = (TextView) findViewById(R.id.txt_Roundsleft);
         updateRoundsLeftTextview();
 
+        //timer
         mTxtTimer = (TextView) findViewById(R.id.txt_Timer);
         String timerLimitStr = preferences.getString(getString(R.string.settings_timerLimit), "-1");
         mTimerLimit = Integer.parseInt(timerLimitStr);
@@ -95,6 +99,7 @@ public class StreetViewActivity extends AppCompatActivity {
             setupCountDownTimer(false);
         }
 
+        //Street View panorama
         SupportStreetViewPanoramaFragment streetViewPanoramaFragment =
                 (SupportStreetViewPanoramaFragment) getSupportFragmentManager().findFragmentById(R.id.frag_streetview);
         streetViewPanoramaFragment.getStreetViewPanoramaAsync(new OnStreetViewPanoramaReadyCallback() {
@@ -119,6 +124,7 @@ public class StreetViewActivity extends AppCompatActivity {
                 }
             });
 
+        //btnChangeLocation
         final Button btnChangeLocation = (Button) findViewById(R.id.btn_changeLocation);
         btnChangeLocation.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -195,6 +201,12 @@ public class StreetViewActivity extends AppCompatActivity {
 
         //current score
         outState.putInt(KEY_SAVED_STATE_TOTAL_SCORE, mTotalScore);
+    }
+
+    @Override
+    public void onBackPressed() {
+        QuitGameDialogFragment quitGameDialogFragment = new QuitGameDialogFragment();
+        quitGameDialogFragment.show(getSupportFragmentManager(), "TAG_QUIT_FRAGMENT");
     }
 
     private void updateScoreTextview() {

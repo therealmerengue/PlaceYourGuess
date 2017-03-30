@@ -1,5 +1,7 @@
 package com.example.trm.placeyourguess;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -8,6 +10,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 public class MainActivity extends AppCompatActivity {
@@ -26,8 +29,12 @@ public class MainActivity extends AppCompatActivity {
         btnSingleplayer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, StreetViewActivity.class);
-                startActivityForResult(intent, REQ_STREET_ACTIVITY);
+                if (isOnline()) {
+                    Intent intent = new Intent(MainActivity.this, StreetViewActivity.class);
+                    startActivityForResult(intent, REQ_STREET_ACTIVITY);
+                } else {
+                    showNoInternetAlertDialog("No internet connection", "Connect to the Internet to play the game.");
+                }
             }
         });
 
@@ -54,10 +61,39 @@ public class MainActivity extends AppCompatActivity {
 
         switch (requestCode) {
             case REQ_STREET_ACTIVITY:
-                Bundle resultData = data.getExtras();
-                int score = resultData.getInt(StreetViewActivity.RESULT_KEY_SCORE);
-                Toast.makeText(this, Integer.toString(score), Toast.LENGTH_LONG).show(); //TODO: replace with screen presenting score
+                if (data != null) {
+                    Bundle resultData = data.getExtras();
+                    int score = resultData.getInt(StreetViewActivity.RESULT_KEY_SCORE);
+                    Toast.makeText(this, Integer.toString(score), Toast.LENGTH_LONG).show(); //TODO: replace with screen presenting score
+                }
                 break;
         }
+    }
+
+    private boolean isOnline() {
+        Runtime runtime = Runtime.getRuntime();
+        try {
+            Process ipProcess = runtime.exec("/system/bin/ping -c 1 8.8.8.8");
+            int exitValue = ipProcess.waitFor();
+            return exitValue == 0;
+        }
+        catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    private void showNoInternetAlertDialog(String title, String message) {
+        AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+        alertDialog.setTitle(title);
+        alertDialog.setMessage(message);
+        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+        alertDialog.show();
     }
 }
