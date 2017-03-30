@@ -178,7 +178,6 @@ public class LocationSelector {
             while (response == null || response.length() == 0
                     || locationCountryCode == null || !locationCountryCode.equals(mCountryCode)) {
                 LatLng randomLocation = getRandomLatLng(new Pair<>(southWest, northEast));
-                Log.e("Loc", Double.toString(randomLocation.latitude) + " " + Double.toString(randomLocation.longitude));
                 String url = URL_BEGINNING + randomLocation.latitude + "," + randomLocation.longitude + URL_END;
                 response = readJsonFromUrl(url);
                 if (response == null || response.length() == 0)

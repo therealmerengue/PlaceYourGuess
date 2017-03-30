@@ -17,4 +17,5 @@
     <string name="settings_numOfRounds">numberOfRounds</string>
     <string name="settings_hintsEnabled">hintsEnabled</string>
     <string name="confirm">Confirm</string>
+    <string name="title_activity_country_list">CountryListActivity</string>
 </resources>

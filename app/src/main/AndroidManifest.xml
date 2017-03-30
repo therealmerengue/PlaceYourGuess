@@ -27,9 +27,14 @@
         </activity>
         <activity android:name=".StreetViewActivity" />
         <activity android:name=".MapActivity" />
-        <activity android:name=".SettingsActivity"
-            android:theme="@style/AppThemeSettings"
-            android:label="Settings"/>
+        <activity
+            android:name=".SettingsActivity"
+            android:label="Settings"
+            android:theme="@style/AppThemeActionBar" />
+        <activity
+            android:name=".CountryListActivity"
+            android:label="Choose location"
+            android:theme="@style/AppThemeActionBar"/>
     </application>
 
 </manifest>

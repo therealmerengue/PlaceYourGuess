@@ -8,7 +8,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,8 +16,6 @@ public class MainActivity extends AppCompatActivity {
 
     private Button btnSingleplayer;
     private FloatingActionButton btnSettings;
-
-    private static final int REQ_STREET_ACTIVITY = 101;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,8 +27,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (isOnline()) {
-                    Intent intent = new Intent(MainActivity.this, StreetViewActivity.class);
-                    startActivityForResult(intent, REQ_STREET_ACTIVITY);
+                    Intent intent = new Intent(MainActivity.this, CountryListActivity.class);
+                    startActivity(intent);
                 } else {
                     showNoInternetAlertDialog("No internet connection", "Connect to the Internet to play the game.");
                 }
@@ -53,21 +50,6 @@ public class MainActivity extends AppCompatActivity {
 
         InputStream countriesStream = getResources().openRawResource(R.raw.codes);
         bbHolder.loadCountries(countriesStream);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        switch (requestCode) {
-            case REQ_STREET_ACTIVITY:
-                if (data != null) {
-                    Bundle resultData = data.getExtras();
-                    int score = resultData.getInt(StreetViewActivity.RESULT_KEY_SCORE);
-                    Toast.makeText(this, Integer.toString(score), Toast.LENGTH_LONG).show(); //TODO: replace with screen presenting score
-                }
-                break;
-        }
     }
 
     private boolean isOnline() {

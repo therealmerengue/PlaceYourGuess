@@ -37,6 +37,7 @@ public class StreetViewActivity extends AppCompatActivity {
     private long mTimerLeft = -1;
     private int mTimerLimit = -1;
     private String mCountryCode = "US";
+    private boolean mPickRandomCountry = false;
 
     private boolean mSwitchToMapOnTimerEnd = true;
 
@@ -56,11 +57,30 @@ public class StreetViewActivity extends AppCompatActivity {
     private final static String KEY_SAVED_STATE_TIMER_VALUE = "TIMER_VALUE";
     private final static String KEY_SAVED_STATE_ROUND_NUMBER = "ROUND_NUMBER";
     private final static String KEY_SAVED_STATE_TOTAL_SCORE = "TOTAL_SCORE";
+    private final static String KEY_SAVED_STATE_COUNTRY_CODE = "COUNTRY_CODE";
+    private final static String KEY_SAVED_STATE_RANDOM_COUNTRY = "RANDOM_COUNTRY";
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_street_view);
+
+        if (savedInstanceState == null) {
+            Intent intent = getIntent();
+            mPickRandomCountry = intent.getBooleanExtra(CountryListActivity.EXTRA_RANDOM_COUNTRY, false);
+            if (mPickRandomCountry) {
+                mCountryCode = CountryListActivity.getRandomCode();
+            } else {
+                mCountryCode = intent.getStringExtra(CountryListActivity.EXTRA_SELECTED_COUNTRY_CODE);
+            }
+        } else {
+            mPickRandomCountry = savedInstanceState.getBoolean(KEY_SAVED_STATE_RANDOM_COUNTRY);
+            if (mPickRandomCountry) {
+                mCountryCode = CountryListActivity.getRandomCode();
+            } else {
+                mCountryCode = savedInstanceState.getString(KEY_SAVED_STATE_COUNTRY_CODE);
+            }
+        }
 
         //btnSwitchToMap
         mBtnSwitchToMap = (FloatingActionButton) findViewById(R.id.btn_switchToMapView);
@@ -115,7 +135,7 @@ public class StreetViewActivity extends AppCompatActivity {
                     mLocationSelector = new LocationSelector(mStreetViewPanorama, StreetViewActivity.this);
 
                     if (savedInstanceState == null) {
-                        mLocationSelector.switchPanorama("US"); //switches Street View panorama and starts count down timer
+                        mLocationSelector.switchPanorama(mCountryCode); //switches Street View panorama and starts count down timer
                     } else {
                         LatLng panoramaPosition = new LatLng(savedInstanceState.getDouble(KEY_SAVED_STATE_LOCATION_LAT),
                                         savedInstanceState.getDouble(KEY_SAVED_STATE_LOCATION_LNG));
@@ -129,7 +149,7 @@ public class StreetViewActivity extends AppCompatActivity {
         btnChangeLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mLocationSelector.switchPanorama("US");
+                mLocationSelector.switchPanorama(mCountryCode);
             }
         });
     }
@@ -150,6 +170,9 @@ public class StreetViewActivity extends AppCompatActivity {
                         updateScoreTextview();
                         if (mLocationSelector == null) {
                             mLocationSelector = new LocationSelector(mStreetViewPanorama, this);
+                        }
+                        if (mPickRandomCountry) {
+                            mCountryCode = CountryListActivity.getRandomCode();
                         }
                         mLocationSelector.switchPanorama(mCountryCode);
                         updateRoundsLeftTextview();
@@ -201,6 +224,12 @@ public class StreetViewActivity extends AppCompatActivity {
 
         //current score
         outState.putInt(KEY_SAVED_STATE_TOTAL_SCORE, mTotalScore);
+
+        //choose random country?
+        outState.putBoolean(KEY_SAVED_STATE_RANDOM_COUNTRY, mPickRandomCountry);
+
+        //country code
+        outState.putString(KEY_SAVED_STATE_COUNTRY_CODE, mCountryCode);
     }
 
     @Override

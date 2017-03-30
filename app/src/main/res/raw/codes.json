@@ -130,7 +130,7 @@
     "country-code": "064"
   },
   {
-    "name": "Bolivia (Plurinational State of)",
+    "name": "Bolivia",
     "alpha-2": "BO",
     "country-code": "068"
   },
@@ -295,7 +295,7 @@
     "country-code": "196"
   },
   {
-    "name": "Czech Republic",
+    "name": "Czechia",
     "alpha-2": "CZ",
     "country-code": "203"
   },
@@ -655,7 +655,7 @@
     "country-code": "446"
   },
   {
-    "name": "Macedonia (the former Yugoslav Republic of)",
+    "name": "Macedonia (FYROM)",
     "alpha-2": "MK",
     "country-code": "807"
   },
@@ -1035,6 +1035,11 @@
     "country-code": "239"
   },
   {
+    "name": "South Korea",
+    "alpha-2": "KR",
+    "country-code": "728"
+  },
+  {
     "name": "South Sudan",
     "alpha-2": "SS",
     "country-code": "728"
@@ -1085,7 +1090,7 @@
     "country-code": "760"
   },
   {
-    "name": "Taiwan, Province of China",
+    "name": "Taiwan",
     "alpha-2": "TW",
     "country-code": "158"
   },
@@ -1170,7 +1175,7 @@
     "country-code": "784"
   },
   {
-    "name": "United Kingdom of Great Britain and Northern Ireland",
+    "name": "United Kingdom",
     "alpha-2": "GB",
     "country-code": "826"
   },
