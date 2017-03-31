@@ -34,6 +34,10 @@
         <activity
             android:name=".CountryListActivity"
             android:label="Choose location"
+            android:theme="@style/AppThemeActionBar" />
+        <activity
+            android:name=".MultiplayerActivity"
+            android:label="Multiplayer"
             android:theme="@style/AppThemeActionBar"/>
     </application>
 

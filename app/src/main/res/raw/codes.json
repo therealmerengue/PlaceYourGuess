@@ -1,28 +1,8 @@
 [
   {
-    "name": "Afghanistan",
-    "alpha-2": "AF",
-    "country-code": "004"
-  },
-  {
-    "name": "Åland Islands",
-    "alpha-2": "AX",
-    "country-code": "248"
-  },
-  {
     "name": "Albania",
     "alpha-2": "AL",
     "country-code": "008"
-  },
-  {
-    "name": "Algeria",
-    "alpha-2": "DZ",
-    "country-code": "012"
-  },
-  {
-    "name": "American Samoa",
-    "alpha-2": "AS",
-    "country-code": "016"
   },
   {
     "name": "Andorra",
@@ -30,39 +10,9 @@
     "country-code": "020"
   },
   {
-    "name": "Angola",
-    "alpha-2": "AO",
-    "country-code": "024"
-  },
-  {
-    "name": "Anguilla",
-    "alpha-2": "AI",
-    "country-code": "660"
-  },
-  {
-    "name": "Antarctica",
-    "alpha-2": "AQ",
-    "country-code": "010"
-  },
-  {
-    "name": "Antigua and Barbuda",
-    "alpha-2": "AG",
-    "country-code": "028"
-  },
-  {
     "name": "Argentina",
     "alpha-2": "AR",
     "country-code": "032"
-  },
-  {
-    "name": "Armenia",
-    "alpha-2": "AM",
-    "country-code": "051"
-  },
-  {
-    "name": "Aruba",
-    "alpha-2": "AW",
-    "country-code": "533"
   },
   {
     "name": "Australia",
@@ -110,21 +60,6 @@
     "country-code": "056"
   },
   {
-    "name": "Belize",
-    "alpha-2": "BZ",
-    "country-code": "084"
-  },
-  {
-    "name": "Benin",
-    "alpha-2": "BJ",
-    "country-code": "204"
-  },
-  {
-    "name": "Bermuda",
-    "alpha-2": "BM",
-    "country-code": "060"
-  },
-  {
     "name": "Bhutan",
     "alpha-2": "BT",
     "country-code": "064"
@@ -133,11 +68,6 @@
     "name": "Bolivia",
     "alpha-2": "BO",
     "country-code": "068"
-  },
-  {
-    "name": "Bonaire, Sint Eustatius and Saba",
-    "alpha-2": "BQ",
-    "country-code": "535"
   },
   {
     "name": "Bosnia and Herzegovina",
@@ -150,24 +80,9 @@
     "country-code": "072"
   },
   {
-    "name": "Bouvet Island",
-    "alpha-2": "BV",
-    "country-code": "074"
-  },
-  {
     "name": "Brazil",
     "alpha-2": "BR",
     "country-code": "076"
-  },
-  {
-    "name": "British Indian Ocean Territory",
-    "alpha-2": "IO",
-    "country-code": "086"
-  },
-  {
-    "name": "Brunei Darussalam",
-    "alpha-2": "BN",
-    "country-code": "096"
   },
   {
     "name": "Bulgaria",
@@ -200,26 +115,6 @@
     "country-code": "124"
   },
   {
-    "name": "Cabo Verde",
-    "alpha-2": "CV",
-    "country-code": "132"
-  },
-  {
-    "name": "Cayman Islands",
-    "alpha-2": "KY",
-    "country-code": "136"
-  },
-  {
-    "name": "Central African Republic",
-    "alpha-2": "CF",
-    "country-code": "140"
-  },
-  {
-    "name": "Chad",
-    "alpha-2": "TD",
-    "country-code": "148"
-  },
-  {
     "name": "Chile",
     "alpha-2": "CL",
     "country-code": "152"
@@ -228,16 +123,6 @@
     "name": "China",
     "alpha-2": "CN",
     "country-code": "156"
-  },
-  {
-    "name": "Christmas Island",
-    "alpha-2": "CX",
-    "country-code": "162"
-  },
-  {
-    "name": "Cocos (Keeling) Islands",
-    "alpha-2": "CC",
-    "country-code": "166"
   },
   {
     "name": "Colombia",
@@ -260,11 +145,6 @@
     "country-code": "180"
   },
   {
-    "name": "Cook Islands",
-    "alpha-2": "CK",
-    "country-code": "184"
-  },
-  {
     "name": "Costa Rica",
     "alpha-2": "CR",
     "country-code": "188"
@@ -285,11 +165,6 @@
     "country-code": "192"
   },
   {
-    "name": "Curaçao",
-    "alpha-2": "CW",
-    "country-code": "531"
-  },
-  {
     "name": "Cyprus",
     "alpha-2": "CY",
     "country-code": "196"
@@ -303,11 +178,6 @@
     "name": "Denmark",
     "alpha-2": "DK",
     "country-code": "208"
-  },
-  {
-    "name": "Djibouti",
-    "alpha-2": "DJ",
-    "country-code": "262"
   },
   {
     "name": "Dominica",
@@ -330,21 +200,6 @@
     "country-code": "818"
   },
   {
-    "name": "El Salvador",
-    "alpha-2": "SV",
-    "country-code": "222"
-  },
-  {
-    "name": "Equatorial Guinea",
-    "alpha-2": "GQ",
-    "country-code": "226"
-  },
-  {
-    "name": "Eritrea",
-    "alpha-2": "ER",
-    "country-code": "232"
-  },
-  {
     "name": "Estonia",
     "alpha-2": "EE",
     "country-code": "233"
@@ -355,21 +210,6 @@
     "country-code": "231"
   },
   {
-    "name": "Falkland Islands (Malvinas)",
-    "alpha-2": "FK",
-    "country-code": "238"
-  },
-  {
-    "name": "Faroe Islands",
-    "alpha-2": "FO",
-    "country-code": "234"
-  },
-  {
-    "name": "Fiji",
-    "alpha-2": "FJ",
-    "country-code": "242"
-  },
-  {
     "name": "Finland",
     "alpha-2": "FI",
     "country-code": "246"
@@ -378,21 +218,6 @@
     "name": "France",
     "alpha-2": "FR",
     "country-code": "250"
-  },
-  {
-    "name": "French Guiana",
-    "alpha-2": "GF",
-    "country-code": "254"
-  },
-  {
-    "name": "French Polynesia",
-    "alpha-2": "PF",
-    "country-code": "258"
-  },
-  {
-    "name": "French Southern Territories",
-    "alpha-2": "TF",
-    "country-code": "260"
   },
   {
     "name": "Gabon",
@@ -440,16 +265,6 @@
     "country-code": "308"
   },
   {
-    "name": "Guadeloupe",
-    "alpha-2": "GP",
-    "country-code": "312"
-  },
-  {
-    "name": "Guam",
-    "alpha-2": "GU",
-    "country-code": "316"
-  },
-  {
     "name": "Guatemala",
     "alpha-2": "GT",
     "country-code": "320"
@@ -478,16 +293,6 @@
     "name": "Haiti",
     "alpha-2": "HT",
     "country-code": "332"
-  },
-  {
-    "name": "Heard Island and McDonald Islands",
-    "alpha-2": "HM",
-    "country-code": "334"
-  },
-  {
-    "name": "Holy See",
-    "alpha-2": "VA",
-    "country-code": "336"
   },
   {
     "name": "Honduras",
@@ -535,11 +340,6 @@
     "country-code": "372"
   },
   {
-    "name": "Isle of Man",
-    "alpha-2": "IM",
-    "country-code": "833"
-  },
-  {
     "name": "Israel",
     "alpha-2": "IL",
     "country-code": "376"
@@ -558,11 +358,6 @@
     "name": "Japan",
     "alpha-2": "JP",
     "country-code": "392"
-  },
-  {
-    "name": "Jersey",
-    "alpha-2": "JE",
-    "country-code": "832"
   },
   {
     "name": "Jordan",
@@ -710,11 +505,6 @@
     "country-code": "480"
   },
   {
-    "name": "Mayotte",
-    "alpha-2": "YT",
-    "country-code": "175"
-  },
-  {
     "name": "Mexico",
     "alpha-2": "MX",
     "country-code": "484"
@@ -743,11 +533,6 @@
     "name": "Montenegro",
     "alpha-2": "ME",
     "country-code": "499"
-  },
-  {
-    "name": "Montserrat",
-    "alpha-2": "MS",
-    "country-code": "500"
   },
   {
     "name": "Morocco",
@@ -810,21 +595,6 @@
     "country-code": "566"
   },
   {
-    "name": "Niue",
-    "alpha-2": "NU",
-    "country-code": "570"
-  },
-  {
-    "name": "Norfolk Island",
-    "alpha-2": "NF",
-    "country-code": "574"
-  },
-  {
-    "name": "Northern Mariana Islands",
-    "alpha-2": "MP",
-    "country-code": "580"
-  },
-  {
     "name": "Norway",
     "alpha-2": "NO",
     "country-code": "578"
@@ -875,11 +645,6 @@
     "country-code": "608"
   },
   {
-    "name": "Pitcairn",
-    "alpha-2": "PN",
-    "country-code": "612"
-  },
-  {
     "name": "Poland",
     "alpha-2": "PL",
     "country-code": "616"
@@ -900,11 +665,6 @@
     "country-code": "634"
   },
   {
-    "name": "Réunion",
-    "alpha-2": "RE",
-    "country-code": "638"
-  },
-  {
     "name": "Romania",
     "alpha-2": "RO",
     "country-code": "642"
@@ -920,16 +680,6 @@
     "country-code": "646"
   },
   {
-    "name": "Saint Barthélemy",
-    "alpha-2": "BL",
-    "country-code": "652"
-  },
-  {
-    "name": "Saint Helena, Ascension and Tristan da Cunha",
-    "alpha-2": "SH",
-    "country-code": "654"
-  },
-  {
     "name": "Saint Kitts and Nevis",
     "alpha-2": "KN",
     "country-code": "659"
@@ -938,16 +688,6 @@
     "name": "Saint Lucia",
     "alpha-2": "LC",
     "country-code": "662"
-  },
-  {
-    "name": "Saint Martin (French part)",
-    "alpha-2": "MF",
-    "country-code": "663"
-  },
-  {
-    "name": "Saint Pierre and Miquelon",
-    "alpha-2": "PM",
-    "country-code": "666"
   },
   {
     "name": "Saint Vincent and the Grenadines",
@@ -1000,11 +740,6 @@
     "country-code": "702"
   },
   {
-    "name": "Saint Maarten (Dutch part)",
-    "alpha-2": "SX",
-    "country-code": "534"
-  },
-  {
     "name": "Slovakia",
     "alpha-2": "SK",
     "country-code": "703"
@@ -1028,11 +763,6 @@
     "name": "South Africa",
     "alpha-2": "ZA",
     "country-code": "710"
-  },
-  {
-    "name": "South Georgia and the South Sandwich Islands",
-    "alpha-2": "GS",
-    "country-code": "239"
   },
   {
     "name": "South Korea",
@@ -1063,11 +793,6 @@
     "name": "Suriname",
     "alpha-2": "SR",
     "country-code": "740"
-  },
-  {
-    "name": "Svalbard and Jan Mayen",
-    "alpha-2": "SJ",
-    "country-code": "744"
   },
   {
     "name": "Swaziland",
@@ -1120,11 +845,6 @@
     "country-code": "768"
   },
   {
-    "name": "Tokelau",
-    "alpha-2": "TK",
-    "country-code": "772"
-  },
-  {
     "name": "Tonga",
     "alpha-2": "TO",
     "country-code": "776"
@@ -1148,11 +868,6 @@
     "name": "Turkmenistan",
     "alpha-2": "TM",
     "country-code": "795"
-  },
-  {
-    "name": "Turks and Caicos Islands",
-    "alpha-2": "TC",
-    "country-code": "796"
   },
   {
     "name": "Tuvalu",
@@ -1185,11 +900,6 @@
     "country-code": "840"
   },
   {
-    "name": "United States Minor Outlying Islands",
-    "alpha-2": "UM",
-    "country-code": "581"
-  },
-  {
     "name": "Uruguay",
     "alpha-2": "UY",
     "country-code": "858"
@@ -1213,21 +923,6 @@
     "name": "Viet Nam",
     "alpha-2": "VN",
     "country-code": "704"
-  },
-  {
-    "name": "Virgin Islands (British)",
-    "alpha-2": "VG",
-    "country-code": "092"
-  },
-  {
-    "name": "Virgin Islands (U.S.)",
-    "alpha-2": "VI",
-    "country-code": "850"
-  },
-  {
-    "name": "Wallis and Futuna",
-    "alpha-2": "WF",
-    "country-code": "876"
   },
   {
     "name": "Western Sahara",

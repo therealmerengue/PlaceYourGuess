@@ -18,4 +18,11 @@
     <string name="settings_hintsEnabled">hintsEnabled</string>
     <string name="confirm">Confirm</string>
     <string name="title_activity_country_list">CountryListActivity</string>
+
+    <string name="ably_key">8ScUCQ.o3tGtQ:9xIpVWzVkp-B9ci-</string>
+    <string name="channel_name">Channel name</string>
+    <string name="join">Join</string>
+    <string name="num_of_players_ready">Players ready:</string>
+    <string name="leave">Leave</string>
+    <string name="not_joined">You haven\'t joined a game channel yet.</string>
 </resources>
