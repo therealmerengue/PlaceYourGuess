@@ -25,6 +25,16 @@ public class MultiplayerActivity extends AppCompatActivity {
     private Button mBtnLeave;
 
     private Channel mChannel;
+    private boolean mJoinedChannel = false;
+    private boolean mIsHost = false;
+
+    @Override
+    public void onBackPressed() {
+        if (mJoinedChannel) {
+            mBtnLeave.callOnClick();
+        }
+        super.onBackPressed();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +74,7 @@ public class MultiplayerActivity extends AppCompatActivity {
                                                 + getString(R.string.num_of_players_ready) + " " + Integer.toString(members.length));
                                         mBtnJoin.setEnabled(false);
                                         mBtnLeave.setEnabled(true);
+                                        mJoinedChannel = true;
                                     }
                                 });
                                 //TODO: check if player is first in the channel (first on members list) - if so he's host - what if host leaves?
@@ -104,6 +115,7 @@ public class MultiplayerActivity extends AppCompatActivity {
                                     mTxtChannelState.setText(getString(R.string.not_joined));
                                     mBtnJoin.setEnabled(true);
                                     mBtnLeave.setEnabled(false);
+                                    mJoinedChannel = false;
                                 }
                             });
                         }

@@ -1,6 +1,7 @@
 package com.example.trm.placeyourguess;
 
 import android.os.CountDownTimer;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.content.Intent;
@@ -146,9 +147,12 @@ public class MapActivity extends AppCompatActivity implements ScoreFragment.OnFr
     protected void onPause() {
         super.onPause();
 
-        if (mRoundTimer != null) {
-            mRoundTimer.cancel();
-        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
     }
 
     @Override
@@ -165,9 +169,9 @@ public class MapActivity extends AppCompatActivity implements ScoreFragment.OnFr
         Fragment pf = fm.findFragmentById(R.id.frag_score);
         FragmentTransaction ft = fm.beginTransaction().setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out);
         if (hide) {
-            ft.hide(pf).commit();
+            ft.hide(pf).commitAllowingStateLoss(); //workaround to prevent crashes in CountDownTimer onFinish
         } else {
-            ft.show(pf).commit();
+            ft.show(pf).commitAllowingStateLoss();
         }
     }
 

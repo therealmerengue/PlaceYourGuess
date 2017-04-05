@@ -24,7 +24,6 @@ public class CountryListActivity extends AppCompatActivity {
     static final String[] countryNames = {
             "World",
             "Albania",
-            "Androrra",
             "Argentina",
             "Australia",
             "Bangladesh",
@@ -98,7 +97,6 @@ public class CountryListActivity extends AppCompatActivity {
     static final String[] countryCodes = {
             "AL",
             "AD",
-            "AR",
             "AU",
             "BD",
             "BE",
@@ -171,7 +169,6 @@ public class CountryListActivity extends AppCompatActivity {
     static final Integer[] imgIDs = {
             R.drawable.world,
             R.drawable.albania,
-            R.drawable.andorra,
             R.drawable.argentina,
             R.drawable.australia,
             R.drawable.bangladesh,

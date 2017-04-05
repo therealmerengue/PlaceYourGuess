@@ -1,5 +1,6 @@
 package com.example.trm.placeyourguess;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -29,11 +30,12 @@ public class LocationSelector {
     private JSONArray mCountriesInfo;
     private StreetViewPanorama mPanorama;
     private StreetViewActivity mContextActivity;
+    private ProgressDialog mProgressDialog;
 
     private String mCountryCode;
 
     private static final String URL_BEGINNING = "http://maps.google.com/cbk?output=json&hl=en&ll=";
-    private static final String URL_END = "&radius=10000&cb_client=maps_sv&v=4";
+    private static final String URL_END = "&radius=100000&cb_client=maps_sv&v=4";
 
     public LocationSelector(StreetViewPanorama panorama, Context context) {
         mPanorama = panorama;
@@ -154,8 +156,7 @@ public class LocationSelector {
                 JSONObject country = mCountriesInfo.getJSONObject(i);
                 String name = country.getString("name");
                 if (name.equals(countryName)) {
-                    String code = country.getString("alpha-2");
-                    return code;
+                    return country.getString("alpha-2");
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -165,7 +166,12 @@ public class LocationSelector {
         return null;
     }
 
-    class ImageChecker extends AsyncTask<LatLng, Void, JSONObject> {
+    private class ImageChecker extends AsyncTask<LatLng, Void, JSONObject> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            mProgressDialog = ProgressDialog.show(mContextActivity, "", "Please Wait", false);
+        }
 
         @Override
         protected JSONObject doInBackground(LatLng... params) {
@@ -210,6 +216,7 @@ public class LocationSelector {
             LatLng location = new LatLng(lat, lng);
             mPanorama.setPosition(location);
             mContextActivity.setupCountDownTimer(true);
+            mProgressDialog.dismiss();
         }
     }
 }
