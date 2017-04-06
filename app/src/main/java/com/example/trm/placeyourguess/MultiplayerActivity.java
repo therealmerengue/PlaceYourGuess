@@ -3,10 +3,10 @@ package com.example.trm.placeyourguess;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -14,13 +14,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.net.URISyntaxException;
-
-import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
-public class SocketMultiplayerActivity extends AppCompatActivity {
+public class MultiplayerActivity extends AppCompatActivity {
 
     private Socket mSocket;
 
@@ -30,6 +27,8 @@ public class SocketMultiplayerActivity extends AppCompatActivity {
     private Button mBtnJoin;
     private Button mBtnLeave;
     private Button mBtnStartGame;
+    private Button mBtnSettings;
+    private LinearLayout mLayoutHostControls;
 
     private String mJoinedChannelName;
     private String mNickname;
@@ -47,18 +46,17 @@ public class SocketMultiplayerActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_socket_multiplayer);
+        setContentView(R.layout.activity_multiplayer);
 
         mSocket = SocketHolder.getInstance();
 
         mSocket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                Log.e("JOINED", "Joined server");
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(SocketMultiplayerActivity.this, "Connected to server.", Toast.LENGTH_LONG).show();
+                        Toast.makeText(MultiplayerActivity.this, "Connected to server.", Toast.LENGTH_LONG).show();
                     }
                 });
             }
@@ -71,7 +69,7 @@ public class SocketMultiplayerActivity extends AppCompatActivity {
                         if (mJoinedChannel) {
                             emitLeaveRoom();
                         }
-                        Toast.makeText(SocketMultiplayerActivity.this, "Disconnected from server.", Toast.LENGTH_LONG).show();
+                        Toast.makeText(MultiplayerActivity.this, "Disconnected from server.", Toast.LENGTH_LONG).show();
                     }
                 });
             }
@@ -82,7 +80,7 @@ public class SocketMultiplayerActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        mBtnStartGame.setVisibility(View.VISIBLE);
+                        mLayoutHostControls.setVisibility(View.VISIBLE);
                     }
                 });
             }
@@ -92,6 +90,7 @@ public class SocketMultiplayerActivity extends AppCompatActivity {
         mTxtChannelState = (TextView) findViewById(R.id.txt_channelState);
         mEditChannel = (EditText) findViewById(R.id.edit_channel);
         mEditNickname = (EditText) findViewById(R.id.edit_nickname);
+        mLayoutHostControls = (LinearLayout) findViewById(R.id.layout_hostControls);
 
         mBtnJoin = (Button) findViewById(R.id.btn_join);
         mBtnJoin.setOnClickListener(new View.OnClickListener() {
@@ -101,11 +100,11 @@ public class SocketMultiplayerActivity extends AppCompatActivity {
                 String nickname = mEditNickname.getText().toString().trim();
                 //TODO: check for invalid channel names
                 if (channelName.length() == 0) {
-                    Toast.makeText(SocketMultiplayerActivity.this, "Enter channel name.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(MultiplayerActivity.this, "Enter channel name.", Toast.LENGTH_LONG).show();
                     return;
                 }
                 if (nickname.length() == 0) {
-                    Toast.makeText(SocketMultiplayerActivity.this, "Enter nickname.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(MultiplayerActivity.this, "Enter nickname.", Toast.LENGTH_LONG).show();
                     return;
                 }
 
@@ -152,7 +151,7 @@ public class SocketMultiplayerActivity extends AppCompatActivity {
                         mEditChannel.getText().clear();
                         mEditChannel.setEnabled(true);
                         mEditNickname.setEnabled(true);
-                        mBtnStartGame.setVisibility(View.GONE);
+                        mLayoutHostControls.setVisibility(View.GONE);
                     }
                 });
             }
@@ -162,8 +161,17 @@ public class SocketMultiplayerActivity extends AppCompatActivity {
         mBtnStartGame.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(SocketMultiplayerActivity.this, CountryListActivity.class);
+                Intent intent = new Intent(MultiplayerActivity.this, CountryListActivity.class);
                 intent.putExtra(MainActivity.EXTRA_IS_SINGLEPLAYER, false);
+                startActivity(intent);
+            }
+        });
+
+        mBtnSettings = (Button) findViewById(R.id.btn_switchToSettings);
+        mBtnSettings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MultiplayerActivity.this, SettingsActivity.class);
                 startActivity(intent);
             }
         });

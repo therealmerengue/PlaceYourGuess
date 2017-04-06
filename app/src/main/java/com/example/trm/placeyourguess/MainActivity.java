@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (isOnline()) {
-                    Intent intent = new Intent(MainActivity.this, SocketMultiplayerActivity.class);
+                    Intent intent = new Intent(MainActivity.this, MultiplayerActivity.class);
                     startActivity(intent);
                 } else {
                     showNoInternetAlertDialog("No internet connection", "Connect to the Internet to play the game.");

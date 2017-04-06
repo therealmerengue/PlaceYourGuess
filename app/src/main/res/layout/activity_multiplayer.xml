@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.trm.placeyourguess.SocketMultiplayerActivity"
+    tools:context="com.example.trm.placeyourguess.MultiplayerActivity"
     android:orientation="vertical">
 
     <EditText
@@ -47,11 +47,28 @@
         android:id="@+id/txt_channelState"
         android:text="@string/not_joined"/>
 
-    <Button
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/btn_startGame"
+        android:orientation="horizontal"
+        android:weightSum="1"
         android:visibility="gone"
-        android:text="@string/start_game"/>
+        android:id="@+id/layout_hostControls">
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/btn_startGame"
+            android:text="@string/start_game"
+            android:layout_weight=".5"/>
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/btn_switchToSettings"
+            android:text="@string/game_settings"
+            android:layout_weight=".5"/>
+
+    </LinearLayout>
 
 </LinearLayout>
