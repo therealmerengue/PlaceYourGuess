@@ -25,4 +25,6 @@
     <string name="num_of_players_ready">Players ready:</string>
     <string name="leave">Leave</string>
     <string name="not_joined">You haven\'t joined a game channel yet.</string>
+    <string name="enter_nickname">Enter nickname</string>
+    <string name="start_game">Start game</string>
 </resources>

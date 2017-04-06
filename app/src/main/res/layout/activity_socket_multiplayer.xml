@@ -3,13 +3,19 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.trm.placeyourguess.MultiplayerActivity"
+    tools:context="com.example.trm.placeyourguess.SocketMultiplayerActivity"
     android:orientation="vertical">
 
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/edit_channelName"
+        android:id="@+id/edit_nickname"
+        android:hint="@string/enter_nickname"/>
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/edit_channel"
         android:hint="@string/channel_name"/>
 
     <LinearLayout
@@ -21,14 +27,14 @@
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/btn_joinChannel"
+            android:id="@+id/btn_join"
             android:text="@string/join"
             android:layout_weight=".5"/>
 
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/btn_leaveChannel"
+            android:id="@+id/btn_leave"
             android:text="@string/leave"
             android:enabled="false"
             android:layout_weight=".5"/>
@@ -38,7 +44,14 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/txt_numOfPlayers"
+        android:id="@+id/txt_channelState"
         android:text="@string/not_joined"/>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/btn_startGame"
+        android:visibility="gone"
+        android:text="@string/start_game"/>
 
 </LinearLayout>

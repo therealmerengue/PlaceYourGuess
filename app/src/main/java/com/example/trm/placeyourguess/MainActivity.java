@@ -3,35 +3,24 @@ package com.example.trm.placeyourguess;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.InputStream;
-
-import io.ably.lib.realtime.AblyRealtime;
-import io.ably.lib.realtime.Channel;
-import io.ably.lib.realtime.CompletionListener;
-import io.ably.lib.types.AblyException;
-import io.ably.lib.types.ClientOptions;
-import io.ably.lib.types.ErrorInfo;
-import io.ably.lib.types.Message;
-import io.ably.lib.types.PresenceMessage;
-
-import static io.ably.lib.types.ProtocolMessage.Action.presence;
 
 public class MainActivity extends AppCompatActivity {
 
     private Button mBtnSingleplayer;
     private Button mBtnMultiplayer;
+    private Button mBtnTutorial;
     private FloatingActionButton mBtnSettings;
 
-    private Channel mChannel;
+    //intent extras' tags
+    static final String EXTRA_IS_SINGLEPLAYER = "IS_SINGLEPLAYER";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (isOnline()) {
                     Intent intent = new Intent(MainActivity.this, CountryListActivity.class);
+                    intent.putExtra(EXTRA_IS_SINGLEPLAYER, true);
                     startActivity(intent);
                 } else {
                     showNoInternetAlertDialog("No internet connection", "Connect to the Internet to play the game.");
@@ -56,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (isOnline()) {
-                    Intent intent = new Intent(MainActivity.this, MultiplayerActivity.class);
+                    Intent intent = new Intent(MainActivity.this, SocketMultiplayerActivity.class);
                     startActivity(intent);
                 } else {
                     showNoInternetAlertDialog("No internet connection", "Connect to the Internet to play the game.");

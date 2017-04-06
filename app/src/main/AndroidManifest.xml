@@ -38,7 +38,8 @@
         <activity
             android:name=".MultiplayerActivity"
             android:label="Multiplayer"
-            android:theme="@style/AppThemeActionBar"/>
+            android:theme="@style/AppThemeActionBar" />
+        <activity android:name=".SocketMultiplayerActivity"></activity>
     </application>
 
 </manifest>

@@ -2,12 +2,11 @@ package com.example.trm.placeyourguess;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -41,7 +40,7 @@ public class StreetViewActivity extends AppCompatActivity {
 
     private boolean mSwitchToMapOnTimerEnd = true;
 
-    //extras' tags
+    //intent extras' tags
     static final String EXTRA_LOCATION_COORDINATES = "EXTRA_LOCATION_COORDINATES";
     static final String EXTRA_TIMER_LEFT = "EXTRA_TIMER_LEFT";
 

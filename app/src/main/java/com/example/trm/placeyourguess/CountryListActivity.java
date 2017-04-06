@@ -10,18 +10,20 @@ import android.widget.Toast;
 
 import java.util.Random;
 
-import static android.R.id.list;
+import static android.R.attr.data;
 
 public class CountryListActivity extends AppCompatActivity {
 
     private ListView mListviewCountries;
+
+    private boolean mIsSingleplayer = true;
 
     private static final int REQ_STREET_ACTIVITY = 101;
 
     static final String EXTRA_SELECTED_COUNTRY_CODE = "COUNTRY_CODE";
     static final String EXTRA_RANDOM_COUNTRY = "RANDOM_COUNTRY";
 
-    static final String[] countryNames = {
+    static final String[] mCountryNames = {
             "World",
             "Albania",
             "Argentina",
@@ -94,7 +96,7 @@ public class CountryListActivity extends AppCompatActivity {
             "Uruguay"
     };
 
-    static final String[] countryCodes = {
+    static final String[] mCountryCodes = {
             "AL",
             "AD",
             "AU",
@@ -166,7 +168,7 @@ public class CountryListActivity extends AppCompatActivity {
             "UY"
     };
 
-    static final Integer[] imgIDs = {
+    static final Integer[] mImgIDs = {
             R.drawable.world,
             R.drawable.albania,
             R.drawable.argentina,
@@ -244,7 +246,9 @@ public class CountryListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_country_list);
 
-        CountryListAdapter adapter = new CountryListAdapter(this, countryNames, imgIDs);
+        mIsSingleplayer = getIntent().getBooleanExtra(MainActivity.EXTRA_IS_SINGLEPLAYER, true);
+
+        CountryListAdapter adapter = new CountryListAdapter(this, mCountryNames, mImgIDs);
         mListviewCountries = (ListView) findViewById(R.id.lv_countryList);
         mListviewCountries.setAdapter(adapter);
 
@@ -252,16 +256,21 @@ public class CountryListActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 boolean randomCountry = false;
-                Intent intent = new Intent(CountryListActivity.this, StreetViewActivity.class);
 
-                if (position != 0) { //start streetViewActivity with country code.
-                    String selectedCountryCode = countryCodes[position - 1];
-                    intent.putExtra(EXTRA_SELECTED_COUNTRY_CODE, selectedCountryCode);
-                } else { //start streetViewActivity with info that it needs to choose random country code every time
-                    randomCountry = true;
+                if (mIsSingleplayer) {
+                    Intent intent = new Intent(CountryListActivity.this, StreetViewActivity.class);
+
+                    if (position != 0) { //start streetViewActivity with country code.
+                        String selectedCountryCode = mCountryCodes[position - 1];
+                        intent.putExtra(EXTRA_SELECTED_COUNTRY_CODE, selectedCountryCode);
+                    } else { //start streetViewActivity with info that it needs to choose random country code every time
+                        randomCountry = true;
+                    }
+                    intent.putExtra(EXTRA_RANDOM_COUNTRY, randomCountry);
+                    startActivityForResult(intent, REQ_STREET_ACTIVITY);
+                } else {
+                    //TODO: start MultiplayerStreetViewActivityHost or something
                 }
-                intent.putExtra(EXTRA_RANDOM_COUNTRY, randomCountry);
-                startActivityForResult(intent, REQ_STREET_ACTIVITY);
             }
         });
     }
@@ -283,7 +292,7 @@ public class CountryListActivity extends AppCompatActivity {
 
     static String getRandomCode() {
         Random rand = new Random(System.currentTimeMillis());
-        int codeIndex = rand.nextInt(countryCodes.length);
-        return countryCodes[codeIndex];
+        int codeIndex = rand.nextInt(mCountryCodes.length);
+        return mCountryCodes[codeIndex];
     }
 }
