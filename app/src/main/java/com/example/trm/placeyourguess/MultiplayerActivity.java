@@ -1,6 +1,8 @@
 package com.example.trm.placeyourguess;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -34,12 +36,19 @@ public class MultiplayerActivity extends AppCompatActivity {
     private String mNickname;
     private boolean mJoinedChannel = false;
     private boolean mIsHost = false;
+    private int mPlayersInRoom = 1;
+
+    //intent extras' tags
+    static final String EXTRA_IS_HOST = "IS_HOST";
+    static final String EXTRA_TIMER_LIMIT = "EXTRA_TIMER_LIMIT";
+    static final String EXTRA_NUMBER_OF_ROUNDS = "EXTRA_NUMBER_OF_ROUNDS";
 
     private Emitter.Listener playerCountChangeListener = new Emitter.Listener() {
         @Override
         public void call(Object... args) {
             JSONArray playersList = (JSONArray) args[0];
             updateRoomList(playerListToString(playersList));
+            mPlayersInRoom = playersList.length();
         }
     };
 
@@ -84,7 +93,30 @@ public class MultiplayerActivity extends AppCompatActivity {
                     }
                 });
             }
-        }).on("joinedRoom", playerCountChangeListener).on("playerLeft", playerCountChangeListener);
+        }).on("clientStartGame", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                JSONObject gameSettings = (JSONObject) args[0];
+                try {
+                    int timerLimit = gameSettings.getInt("timerLimit");
+                    int numberOfRounds = gameSettings.getInt("numberOfRounds");
+                    boolean randomCountry = gameSettings.getBoolean("randomCountry");
+
+                    Intent intent = new Intent(MultiplayerActivity.this, StreetViewActivity.class);
+                    intent.putExtra(EXTRA_NUMBER_OF_ROUNDS, numberOfRounds);
+                    intent.putExtra(EXTRA_TIMER_LIMIT, timerLimit);
+                    intent.putExtra(EXTRA_IS_HOST, false);
+                    intent.putExtra(MainActivity.EXTRA_IS_SINGLEPLAYER, false);
+                    intent.putExtra(CountryListActivity.EXTRA_RANDOM_COUNTRY, randomCountry);
+                    if (!randomCountry) {
+                        intent.putExtra(CountryListActivity.EXTRA_SELECTED_COUNTRY_CODE, gameSettings.getString("countryCode"));
+                    }
+                    startActivity(intent);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).on("joinedRoom", playerCountChangeListener).on("playerLeft", playerCountChangeListener).on("playerJoined", playerCountChangeListener);
         mSocket.connect();
 
         mTxtChannelState = (TextView) findViewById(R.id.txt_channelState);
@@ -161,9 +193,14 @@ public class MultiplayerActivity extends AppCompatActivity {
         mBtnStartGame.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MultiplayerActivity.this, CountryListActivity.class);
-                intent.putExtra(MainActivity.EXTRA_IS_SINGLEPLAYER, false);
-                startActivity(intent);
+                if (mPlayersInRoom > 1) {
+                    Intent intent = new Intent(MultiplayerActivity.this, CountryListActivity.class);
+                    intent.putExtra(MainActivity.EXTRA_IS_SINGLEPLAYER, false);
+                    intent.putExtra(EXTRA_IS_HOST, mIsHost);
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(MultiplayerActivity.this, "Minimum 2 players required to start the game.", Toast.LENGTH_LONG).show();
+                }
             }
         });
 

@@ -1,6 +1,8 @@
 package com.example.trm.placeyourguess;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -8,7 +10,12 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.Random;
+
+import io.socket.client.Socket;
 
 import static android.R.attr.data;
 
@@ -257,20 +264,45 @@ public class CountryListActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 boolean randomCountry = false;
 
-                if (mIsSingleplayer) {
-                    Intent intent = new Intent(CountryListActivity.this, StreetViewActivity.class);
+                Intent intent = new Intent(CountryListActivity.this, StreetViewActivity.class);
+                intent.putExtra(MainActivity.EXTRA_IS_SINGLEPLAYER, mIsSingleplayer);
+                String selectedCountryCode = null;
 
-                    if (position != 0) { //start streetViewActivity with country code.
-                        String selectedCountryCode = mCountryCodes[position - 1];
-                        intent.putExtra(EXTRA_SELECTED_COUNTRY_CODE, selectedCountryCode);
-                    } else { //start streetViewActivity with info that it needs to choose random country code every time
-                        randomCountry = true;
-                    }
-                    intent.putExtra(EXTRA_RANDOM_COUNTRY, randomCountry);
-                    startActivityForResult(intent, REQ_STREET_ACTIVITY);
-                } else {
-                    //TODO: start MultiplayerStreetViewActivityHost or something
+                if (position != 0) { //start streetViewActivity with country code.
+                    selectedCountryCode = mCountryCodes[position - 1];
+                    intent.putExtra(EXTRA_SELECTED_COUNTRY_CODE, selectedCountryCode);
+                } else { //start streetViewActivity with info that it needs to choose random country code every time
+                    randomCountry = true;
                 }
+
+                if (!mIsSingleplayer) {
+                    boolean isHost = getIntent().getBooleanExtra(MultiplayerActivity.EXTRA_IS_HOST, true);
+                    intent.putExtra(MultiplayerActivity.EXTRA_IS_HOST, isHost);
+
+                    //TODO: emit event to non-host players to start StreetViewActivity, include settings set by host
+                    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(CountryListActivity.this);
+                    String numberOfRoundsStr = preferences.getString(getString(R.string.settings_numOfRounds), "5");
+                    int numberOfRounds = Integer.parseInt(numberOfRoundsStr);
+                    String timerLimitStr = preferences.getString(getString(R.string.settings_timerLimit), "-1");
+                    int timerLimit = Integer.parseInt(timerLimitStr);
+
+                    JSONObject gameSettings = new JSONObject();
+                    try {
+                        gameSettings.put("numberOfRounds", numberOfRounds);
+                        gameSettings.put("timerLimit", timerLimit);
+                        gameSettings.put("randomCountry", randomCountry);
+                        if (!randomCountry) {
+                            gameSettings.put("countryCode", selectedCountryCode);
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    Socket socket = SocketHolder.getInstance();
+                    socket.emit("startGame", gameSettings);
+                }
+                intent.putExtra(EXTRA_RANDOM_COUNTRY, randomCountry);
+                startActivityForResult(intent, REQ_STREET_ACTIVITY);
             }
         });
     }

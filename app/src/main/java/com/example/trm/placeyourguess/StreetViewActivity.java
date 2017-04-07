@@ -37,8 +37,11 @@ public class StreetViewActivity extends AppCompatActivity {
     private int mTimerLimit = -1;
     private String mCountryCode = "US";
     private boolean mPickRandomCountry = false;
-
     private boolean mSwitchToMapOnTimerEnd = true;
+
+    //multiplayer variables
+    private boolean mIsSingleplayer = true;
+    private boolean mIsHost = true;
 
     //intent extras' tags
     static final String EXTRA_LOCATION_COORDINATES = "EXTRA_LOCATION_COORDINATES";
@@ -58,6 +61,9 @@ public class StreetViewActivity extends AppCompatActivity {
     private final static String KEY_SAVED_STATE_TOTAL_SCORE = "TOTAL_SCORE";
     private final static String KEY_SAVED_STATE_COUNTRY_CODE = "COUNTRY_CODE";
     private final static String KEY_SAVED_STATE_RANDOM_COUNTRY = "RANDOM_COUNTRY";
+    //multiplayer only
+    private final static String KEY_SAVED_STATE_IS_SINGLEPLAYER = "IS_SINGLEPLAYER";
+    private final static String KEY_SAVED_STATE_IS_HOST = "KEY_IS_HOST";
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -66,6 +72,11 @@ public class StreetViewActivity extends AppCompatActivity {
 
         if (savedInstanceState == null) {
             Intent intent = getIntent();
+            mIsSingleplayer = intent.getBooleanExtra(MainActivity.EXTRA_IS_SINGLEPLAYER, true);
+            if (!mIsSingleplayer) {
+                mIsHost = intent.getBooleanExtra(MultiplayerActivity.EXTRA_IS_HOST, true);
+            }
+
             mPickRandomCountry = intent.getBooleanExtra(CountryListActivity.EXTRA_RANDOM_COUNTRY, false);
             if (mPickRandomCountry) {
                 mCountryCode = CountryListActivity.getRandomCode();
@@ -73,6 +84,11 @@ public class StreetViewActivity extends AppCompatActivity {
                 mCountryCode = intent.getStringExtra(CountryListActivity.EXTRA_SELECTED_COUNTRY_CODE);
             }
         } else {
+            mIsSingleplayer = savedInstanceState.getBoolean(KEY_SAVED_STATE_IS_SINGLEPLAYER);
+            if (!mIsSingleplayer) {
+                mIsHost = savedInstanceState.getBoolean(KEY_SAVED_STATE_IS_HOST);
+            }
+
             mPickRandomCountry = savedInstanceState.getBoolean(KEY_SAVED_STATE_RANDOM_COUNTRY);
             if (mPickRandomCountry) {
                 mCountryCode = CountryListActivity.getRandomCode();
@@ -213,6 +229,13 @@ public class StreetViewActivity extends AppCompatActivity {
             LatLng position = mStreetViewPanorama.getLocation().position;
             outState.putDouble(KEY_SAVED_STATE_LOCATION_LAT, position.latitude);
             outState.putDouble(KEY_SAVED_STATE_LOCATION_LNG, position.longitude);
+        }
+
+        //is singleplayer
+        outState.putBoolean(KEY_SAVED_STATE_IS_SINGLEPLAYER, mIsSingleplayer);
+        //if multiplayer - is host
+        if (!mIsSingleplayer) {
+            outState.putBoolean(KEY_SAVED_STATE_IS_HOST, mIsHost);
         }
 
         //current timer value
