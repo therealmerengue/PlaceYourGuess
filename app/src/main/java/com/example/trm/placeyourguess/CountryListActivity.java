@@ -2,9 +2,10 @@ package com.example.trm.placeyourguess;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -16,14 +17,18 @@ import org.json.JSONObject;
 import java.util.Random;
 
 import io.socket.client.Socket;
+import io.socket.emitter.Emitter;
 
-import static android.R.attr.data;
+import static io.socket.client.Socket.EVENT_CONNECT;
 
 public class CountryListActivity extends AppCompatActivity {
 
     private ListView mListviewCountries;
 
     private boolean mIsSingleplayer = true;
+    private boolean mIsConnected = false;
+
+    private Socket mSocket;
 
     private static final int REQ_STREET_ACTIVITY = 101;
 
@@ -253,6 +258,27 @@ public class CountryListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_country_list);
 
+        mSocket = SocketHolder.getInstance();
+        mSocket.connect();
+        mSocket.on(EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                Log.e("SOCK", "EVENT_CONNECT");
+                mIsConnected = true;
+            }
+        }).on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                Log.e("SOCK", "EVENT_CONNECT_ERROR");
+                mIsConnected = false;
+            }
+        }).on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                mIsConnected = false;
+            }
+        });
+
         mIsSingleplayer = getIntent().getBooleanExtra(MainActivity.EXTRA_IS_SINGLEPLAYER, true);
 
         CountryListAdapter adapter = new CountryListAdapter(this, mCountryNames, mImgIDs);
@@ -279,30 +305,36 @@ public class CountryListActivity extends AppCompatActivity {
                     boolean isHost = getIntent().getBooleanExtra(MultiplayerActivity.EXTRA_IS_HOST, true);
                     intent.putExtra(MultiplayerActivity.EXTRA_IS_HOST, isHost);
 
-                    //TODO: emit event to non-host players to start StreetViewActivity, include settings set by host
                     SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(CountryListActivity.this);
                     String numberOfRoundsStr = preferences.getString(getString(R.string.settings_numOfRounds), "5");
                     int numberOfRounds = Integer.parseInt(numberOfRoundsStr);
-                    String timerLimitStr = preferences.getString(getString(R.string.settings_timerLimit), "-1");
-                    int timerLimit = Integer.parseInt(timerLimitStr);
 
-                    JSONObject gameSettings = new JSONObject();
+                    JSONObject gameLocationSettings = new JSONObject();
                     try {
-                        gameSettings.put("numberOfRounds", numberOfRounds);
-                        gameSettings.put("timerLimit", timerLimit);
-                        gameSettings.put("randomCountry", randomCountry);
+                        gameLocationSettings.put("numberOfRounds", numberOfRounds);
+                        gameLocationSettings.put("randomCountry", randomCountry);
                         if (!randomCountry) {
-                            gameSettings.put("countryCode", selectedCountryCode);
+                            gameLocationSettings.put("countryCode", selectedCountryCode);
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
 
-                    Socket socket = SocketHolder.getInstance();
-                    socket.emit("startGame", gameSettings);
+                    mSocket.emit("loadLocations", gameLocationSettings);
+
+                    //TODO: replace startGame event with loadLocations event or something
+                    //on server side load all locations given number of rounds and country code
+                    //emit locationsLoaded back to clients -> send loaded locations back to all clients
+                    //start the game (emit startGame) -> load game settings from host
+                } else {
+                    if (mIsConnected) {
+                        //get locations from socket
+                    } else {
+                        //load locations on phone
+                    }
+                    intent.putExtra(EXTRA_RANDOM_COUNTRY, randomCountry);
+                    startActivityForResult(intent, REQ_STREET_ACTIVITY);
                 }
-                intent.putExtra(EXTRA_RANDOM_COUNTRY, randomCountry);
-                startActivityForResult(intent, REQ_STREET_ACTIVITY);
             }
         });
     }

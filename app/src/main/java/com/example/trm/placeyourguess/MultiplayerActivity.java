@@ -16,6 +16,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.net.URISyntaxException;
+
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
@@ -66,6 +68,16 @@ public class MultiplayerActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         Toast.makeText(MultiplayerActivity.this, "Connected to server.", Toast.LENGTH_LONG).show();
+                    }
+                });
+            }
+        }).on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(MultiplayerActivity.this, "Unable to connect to server.", Toast.LENGTH_SHORT).show();
                     }
                 });
             }
