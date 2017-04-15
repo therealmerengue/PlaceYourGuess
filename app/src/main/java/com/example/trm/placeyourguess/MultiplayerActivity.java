@@ -112,17 +112,13 @@ public class MultiplayerActivity extends AppCompatActivity {
                 try {
                     int timerLimit = gameSettings.getInt("timerLimit");
                     int numberOfRounds = gameSettings.getInt("numberOfRounds");
-                    boolean randomCountry = gameSettings.getBoolean("randomCountry");
-
+                    //TODO: this used to work with old StreetViewActivity, now probably doesn't work
                     Intent intent = new Intent(MultiplayerActivity.this, StreetViewActivity.class);
                     intent.putExtra(EXTRA_NUMBER_OF_ROUNDS, numberOfRounds);
                     intent.putExtra(EXTRA_TIMER_LIMIT, timerLimit);
                     intent.putExtra(EXTRA_IS_HOST, false);
                     intent.putExtra(MainActivity.EXTRA_IS_SINGLEPLAYER, false);
-                    intent.putExtra(CountryListActivity.EXTRA_RANDOM_COUNTRY, randomCountry);
-                    if (!randomCountry) {
-                        intent.putExtra(CountryListActivity.EXTRA_SELECTED_COUNTRY_CODE, gameSettings.getString("countryCode"));
-                    }
+
                     startActivity(intent);
                 } catch (JSONException e) {
                     e.printStackTrace();

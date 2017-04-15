@@ -11,6 +11,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -32,10 +33,10 @@ public class CountryListActivity extends AppCompatActivity {
 
     private Socket mSocket;
 
+    private Intent mStartGameIntent;
+
     static final int REQ_STREET_ACTIVITY = 101;
 
-    static final String EXTRA_SELECTED_COUNTRY_CODE = "COUNTRY_CODE";
-    static final String EXTRA_RANDOM_COUNTRY = "RANDOM_COUNTRY";
     static final String EXTRA_LATITUDES = "LATITUDES";
     static final String EXTRA_LONGITUDES = "LONGITUDES";
 
@@ -281,6 +282,28 @@ public class CountryListActivity extends AppCompatActivity {
             public void call(Object... args) {
                 mIsConnected = false;
             }
+        }).on("startSingleplayerGame", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                JSONArray locations = (JSONArray) args[0];
+                int numOfRounds = locations.length();
+                double[] latitudes = new double[numOfRounds];
+                double[] longitudes = new double[numOfRounds];
+
+                for (int i = 0; i < numOfRounds; i++) {
+                    try {
+                        JSONObject location = locations.getJSONObject(i);
+                        latitudes[i] = location.getDouble("lat");
+                        longitudes[i] = location.getDouble("lng");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+                Log.e("SERV", "Starting game");
+                mStartGameIntent.putExtra(EXTRA_LATITUDES, latitudes);
+                mStartGameIntent.putExtra(EXTRA_LONGITUDES, longitudes);
+                startActivity(mStartGameIntent);
+            }
         });
 
         mIsSingleplayer = getIntent().getBooleanExtra(MainActivity.EXTRA_IS_SINGLEPLAYER, true);
@@ -294,14 +317,13 @@ public class CountryListActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 boolean randomCountry = false;
 
-                Intent intent = new Intent(CountryListActivity.this, StreetViewActivity.class);
-                intent.putExtra(MainActivity.EXTRA_IS_SINGLEPLAYER, mIsSingleplayer);
+                mStartGameIntent = new Intent(CountryListActivity.this, StreetViewActivity.class);
+                mStartGameIntent.putExtra(MainActivity.EXTRA_IS_SINGLEPLAYER, mIsSingleplayer);
                 String selectedCountryCode = null;
 
                 if (position != 0) { //start streetViewActivity with country code.
                     selectedCountryCode = mCountryCodes[position - 1];
-                    intent.putExtra(EXTRA_SELECTED_COUNTRY_CODE, selectedCountryCode);
-                } else { //start streetViewActivity with info that it needs to choose random country code every time
+                } else {
                     randomCountry = true;
                 }
 
@@ -309,33 +331,23 @@ public class CountryListActivity extends AppCompatActivity {
                 String numberOfRoundsStr = preferences.getString(getString(R.string.settings_numOfRounds), "5");
                 mNumOfRounds = Integer.parseInt(numberOfRoundsStr);
 
-                if (!mIsSingleplayer) {
+                if (!mIsSingleplayer) { //MULTIPLAYER
                     boolean isHost = getIntent().getBooleanExtra(MultiplayerActivity.EXTRA_IS_HOST, true);
-                    intent.putExtra(MultiplayerActivity.EXTRA_IS_HOST, isHost);
-
-                    JSONObject gameLocationSettings = new JSONObject();
-                    try {
-                        gameLocationSettings.put("numberOfRounds", mNumOfRounds);
-                        gameLocationSettings.put("randomCountry", randomCountry);
-                        if (!randomCountry) {
-                            gameLocationSettings.put("countryCode", selectedCountryCode);
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-
-                    mSocket.emit("loadLocations", gameLocationSettings);
+                    mStartGameIntent.putExtra(MultiplayerActivity.EXTRA_IS_HOST, isHost);
+                    //doesn't work yet
+                    mSocket.emit("loadLocations", getSettings(randomCountry, selectedCountryCode));
 
                     //TODO: replace startGame event with loadLocations event or something
                     //on server side load all locations given number of rounds and country code
                     //emit locationsLoaded back to clients -> send loaded locations back to all clients
                     //start the game (emit startGame) -> load game settings from host
                 } else {
-                    if (mIsConnected) {
+                    if (mIsConnected) { //SINGLEPLAYER
                         //get locations from socket
+                        mSocket.emit("loadLocations", getSettings(randomCountry, selectedCountryCode));
                     } else {
                         //load locations on phone
-                        LocationSelector selector = new LocationSelector(CountryListActivity.this, intent, mNumOfRounds, randomCountry, selectedCountryCode);
+                        LocationSelector selector = new LocationSelector(CountryListActivity.this, mStartGameIntent, mNumOfRounds, randomCountry, selectedCountryCode);
                         selector.selectLocations();
                     }
                 }
@@ -356,6 +368,23 @@ public class CountryListActivity extends AppCompatActivity {
                 }
                 break;
         }
+    }
+
+    private JSONObject getSettings(boolean randomCountry, String countryCode) {
+        JSONObject settings = new JSONObject();
+
+        try {
+            settings.put("isSingleplayer", mIsSingleplayer);
+            settings.put("numberOfRounds", mNumOfRounds);
+            settings.put("randomCountry", randomCountry);
+            if (!randomCountry) {
+                settings.put("countryCode", countryCode);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return settings;
     }
 
     static String getRandomCode() {
