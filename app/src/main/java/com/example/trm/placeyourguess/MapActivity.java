@@ -13,6 +13,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.GoogleMap;
@@ -24,7 +25,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
-public class MapActivity extends AppCompatActivity implements ScoreFragment.OnFragmentInteractionListener {
+public class MapActivity extends AppCompatActivity {
 
     private SupportMapFragment mFragMap;
     private GoogleMap mMap;
@@ -35,8 +36,16 @@ public class MapActivity extends AppCompatActivity implements ScoreFragment.OnFr
     private FloatingActionButton mBtnSwitchToStreetView;
     private TextView mTxtRoundTimer;
 
+    //score layout
+    private LinearLayout mLayoutScore;
+    private TextView mTxtDistance;
+    private TextView mTxtPoints;
+    private TextView mTxtTotalScore;
+    private FloatingActionButton mBtnNextLocation;
+
     private CountDownTimer mRoundTimer;
     private long mTimerValue;
+    private boolean mGuessMade = false;
 
     //activity result variable keys
     final static String RESULT_KEY_DISTANCE = "DISTANCE";
@@ -53,10 +62,6 @@ public class MapActivity extends AppCompatActivity implements ScoreFragment.OnFr
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
-
-        ScoreFragment.newInstance();
-        hideAndShowFragment(true);
-
 
         Intent intent = getIntent();
         double[] passedCoords = new double[2];
@@ -80,6 +85,7 @@ public class MapActivity extends AppCompatActivity implements ScoreFragment.OnFr
         mBtnConfirm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                mGuessMade = true;
                 LatLng markerCoords = mGuessedLocationMarker.getPosition();
 
                 Location markerLocation = new Location("");
@@ -107,6 +113,30 @@ public class MapActivity extends AppCompatActivity implements ScoreFragment.OnFr
                 }
 
                 StreetViewActivity.cancelCountDownTimer();
+            }
+        });
+
+        //SCORE FRAGMENT
+        mLayoutScore = (LinearLayout) findViewById(R.id.layout_score);
+
+        mTxtDistance = (TextView) findViewById(R.id.txt_Distance);
+        mTxtPoints = (TextView) findViewById(R.id.txt_Points);
+        mTxtTotalScore = (TextView) findViewById(R.id.txt_TotalScore);
+
+        mBtnNextLocation = (FloatingActionButton) findViewById(R.id.btn_nextLocation);
+        mBtnNextLocation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Bundle resultData = new Bundle();
+                resultData.putFloat(RESULT_KEY_DISTANCE, mGuessOffset);
+                Intent intent = new Intent();
+                intent.putExtras(resultData);
+
+                setResult(RESULT_OK, intent);
+                if (mRoundTimer != null) {
+                    mRoundTimer.cancel();
+                }
+                finish();
             }
         });
 
@@ -146,13 +176,11 @@ public class MapActivity extends AppCompatActivity implements ScoreFragment.OnFr
     @Override
     protected void onPause() {
         super.onPause();
-
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-
     }
 
     @Override
@@ -164,29 +192,13 @@ public class MapActivity extends AppCompatActivity implements ScoreFragment.OnFr
         outState.putDouble(KEY_SAVED_STATE_PASSED_LNG, mPassedLocationCoords.longitude);
     }
 
-    public void hideAndShowFragment(boolean hide) {
-        FragmentManager fm = getSupportFragmentManager();
-        Fragment pf = fm.findFragmentById(R.id.frag_score);
-        FragmentTransaction ft = fm.beginTransaction().setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out);
-        if (hide) {
-            ft.hide(pf).commitAllowingStateLoss(); //workaround to prevent crashes in CountDownTimer onFinish
-        } else {
-            ft.show(pf).commitAllowingStateLoss();
-        }
-    }
-
     @Override
-    public void onScoreFragmentInteraction() {
-        Bundle resultData = new Bundle();
-        resultData.putFloat(RESULT_KEY_DISTANCE, mGuessOffset);
-        Intent intent = new Intent();
-        intent.putExtras(resultData);
-
-        setResult(RESULT_OK, intent);
-        if (mRoundTimer != null) {
-            mRoundTimer.cancel();
+    public void onBackPressed() {
+        if (mGuessMade) {
+            mBtnNextLocation.callOnClick();
+        } else {
+            super.onBackPressed();
         }
-        finish();
     }
 
     private void disableMapControls() {  //TODO: add score
@@ -199,9 +211,14 @@ public class MapActivity extends AppCompatActivity implements ScoreFragment.OnFr
     }
 
     private void showScore(float distance) {
-        hideAndShowFragment(false);
-        FragmentManager fm = getSupportFragmentManager();
-        ((ScoreFragment)fm.findFragmentById(R.id.frag_score)).setDistance(distance);
+        mLayoutScore.setVisibility(View.VISIBLE);
+        String distanceLabel = getString(R.string.distance) + Float.toString(distance);
+        String pointsLabel = getString(R.string.points); //TODO: add points
+        String totalScoreLabel = getString(R.string.total_score); //TODO: add total score
+
+        mTxtDistance.setText(distanceLabel);
+        mTxtPoints.setText(pointsLabel);
+        mTxtTotalScore.setText(totalScoreLabel);
     }
 
     private void initTimer() {
@@ -211,6 +228,7 @@ public class MapActivity extends AppCompatActivity implements ScoreFragment.OnFr
 
             if (mPassedTimeLeft == 0) {
                 showScore(0);
+                mGuessMade = true;
             } else {
                 mRoundTimer = new CountDownTimer(mPassedTimeLeft * 1000, 1000) {
                     @Override
@@ -221,6 +239,7 @@ public class MapActivity extends AppCompatActivity implements ScoreFragment.OnFr
 
                     @Override
                     public void onFinish() {
+                        mGuessMade = true;
                         if (mMap != null) {
                             disableMapControls();
                         }

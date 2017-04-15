@@ -7,6 +7,7 @@ import android.os.CountDownTimer;
 import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -27,17 +28,16 @@ public class StreetViewActivity extends AppCompatActivity {
 
     private static StreetViewPanorama mStreetViewPanorama;
 
-    private LocationSelector mLocationSelector;
     private static CountDownTimer mCountDownTimer;
 
     private int mTotalScore = 0;
     private int mRoundNumber = 1;
-    private int mNumberOfRounds = 0;
     private long mTimerLeft = -1;
     private int mTimerLimit = -1;
-    private String mCountryCode = "US";
-    private boolean mPickRandomCountry = false;
     private boolean mSwitchToMapOnTimerEnd = true;
+    private int mNumberOfRounds;
+    private double[] mLatitudes;
+    private double[] mLongitudes;
 
     //multiplayer variables
     private boolean mIsSingleplayer = true;
@@ -59,8 +59,8 @@ public class StreetViewActivity extends AppCompatActivity {
     private final static String KEY_SAVED_STATE_TIMER_VALUE = "TIMER_VALUE";
     private final static String KEY_SAVED_STATE_ROUND_NUMBER = "ROUND_NUMBER";
     private final static String KEY_SAVED_STATE_TOTAL_SCORE = "TOTAL_SCORE";
-    private final static String KEY_SAVED_STATE_COUNTRY_CODE = "COUNTRY_CODE";
-    private final static String KEY_SAVED_STATE_RANDOM_COUNTRY = "RANDOM_COUNTRY";
+    private final static String KEY_SAVED_STATE_LATITUDES = "LATITUDES";
+    private final static String KEY_SAVED_STATE_LONGITUDES = "LONGITUDES";
     //multiplayer only
     private final static String KEY_SAVED_STATE_IS_SINGLEPLAYER = "IS_SINGLEPLAYER";
     private final static String KEY_SAVED_STATE_IS_HOST = "KEY_IS_HOST";
@@ -70,31 +70,38 @@ public class StreetViewActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_street_view);
 
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        //timer limit
+        String timerLimitStr = preferences.getString(getString(R.string.settings_timerLimit), "-1");
+        mTimerLimit = Integer.parseInt(timerLimitStr);
+
+        mTxtTimer = (TextView) findViewById(R.id.txt_Timer);
+        mTxtTotalScore = (TextView) findViewById(R.id.txt_Score);
+        mTxtRoundsLeft = (TextView) findViewById(R.id.txt_Roundsleft);
+
         if (savedInstanceState == null) {
             Intent intent = getIntent();
             mIsSingleplayer = intent.getBooleanExtra(MainActivity.EXTRA_IS_SINGLEPLAYER, true);
             if (!mIsSingleplayer) {
                 mIsHost = intent.getBooleanExtra(MultiplayerActivity.EXTRA_IS_HOST, true);
             }
+            mLatitudes = intent.getDoubleArrayExtra(CountryListActivity.EXTRA_LATITUDES);
+            mLongitudes = intent.getDoubleArrayExtra(CountryListActivity.EXTRA_LONGITUDES);
 
-            mPickRandomCountry = intent.getBooleanExtra(CountryListActivity.EXTRA_RANDOM_COUNTRY, false);
-            if (mPickRandomCountry) {
-                mCountryCode = CountryListActivity.getRandomCode();
-            } else {
-                mCountryCode = intent.getStringExtra(CountryListActivity.EXTRA_SELECTED_COUNTRY_CODE);
-            }
+            setupCountDownTimer(true);
         } else {
             mIsSingleplayer = savedInstanceState.getBoolean(KEY_SAVED_STATE_IS_SINGLEPLAYER);
             if (!mIsSingleplayer) {
                 mIsHost = savedInstanceState.getBoolean(KEY_SAVED_STATE_IS_HOST);
             }
 
-            mPickRandomCountry = savedInstanceState.getBoolean(KEY_SAVED_STATE_RANDOM_COUNTRY);
-            if (mPickRandomCountry) {
-                mCountryCode = CountryListActivity.getRandomCode();
-            } else {
-                mCountryCode = savedInstanceState.getString(KEY_SAVED_STATE_COUNTRY_CODE);
-            }
+            mLatitudes = savedInstanceState.getDoubleArray(KEY_SAVED_STATE_LATITUDES);
+            mLongitudes = savedInstanceState.getDoubleArray(KEY_SAVED_STATE_LONGITUDES);
+
+            mRoundNumber = savedInstanceState.getInt(KEY_SAVED_STATE_ROUND_NUMBER);
+            mTimerLeft = savedInstanceState.getLong(KEY_SAVED_STATE_TIMER_VALUE);
+            setupCountDownTimer(false);
         }
 
         //btnSwitchToMap
@@ -110,29 +117,12 @@ public class StreetViewActivity extends AppCompatActivity {
         if (savedInstanceState != null) {
             mTotalScore = savedInstanceState.getInt(KEY_SAVED_STATE_TOTAL_SCORE);
         }
-        mTxtTotalScore = (TextView) findViewById(R.id.txt_Score);
         updateScoreTextview();
 
         //numberOfRounds
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         String numberOfRoundsStr = preferences.getString(getString(R.string.settings_numOfRounds), "5");
         mNumberOfRounds = Integer.parseInt(numberOfRoundsStr);
-
-        //roundNumber
-        if (savedInstanceState != null) {
-            mRoundNumber = savedInstanceState.getInt(KEY_SAVED_STATE_ROUND_NUMBER);
-        }
-        mTxtRoundsLeft = (TextView) findViewById(R.id.txt_Roundsleft);
         updateRoundsLeftTextview();
-
-        //timer
-        mTxtTimer = (TextView) findViewById(R.id.txt_Timer);
-        String timerLimitStr = preferences.getString(getString(R.string.settings_timerLimit), "-1");
-        mTimerLimit = Integer.parseInt(timerLimitStr);
-        if (savedInstanceState != null) {
-            mTimerLeft = savedInstanceState.getLong(KEY_SAVED_STATE_TIMER_VALUE);
-            setupCountDownTimer(false);
-        }
 
         //Street View panorama
         SupportStreetViewPanoramaFragment streetViewPanoramaFragment =
@@ -147,26 +137,10 @@ public class StreetViewActivity extends AppCompatActivity {
                     mStreetViewPanorama.setZoomGesturesEnabled(true);
                     mStreetViewPanorama.setPanningGesturesEnabled(true);
 
-                    mLocationSelector = new LocationSelector(mStreetViewPanorama, StreetViewActivity.this);
-
-                    if (savedInstanceState == null) {
-                        mLocationSelector.switchPanorama(mCountryCode); //switches Street View panorama and starts count down timer
-                    } else {
-                        LatLng panoramaPosition = new LatLng(savedInstanceState.getDouble(KEY_SAVED_STATE_LOCATION_LAT),
-                                        savedInstanceState.getDouble(KEY_SAVED_STATE_LOCATION_LNG));
-                        mStreetViewPanorama.setPosition(panoramaPosition);
-                    }
+                    LatLng panoramaPosition = new LatLng(mLatitudes[mRoundNumber - 1], mLongitudes[mRoundNumber - 1]);
+                    mStreetViewPanorama.setPosition(panoramaPosition);
                 }
             });
-
-        //btnChangeLocation
-        final Button btnChangeLocation = (Button) findViewById(R.id.btn_changeLocation);
-        btnChangeLocation.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mLocationSelector.switchPanorama(mCountryCode);
-            }
-        });
     }
 
     @Override
@@ -183,14 +157,10 @@ public class StreetViewActivity extends AppCompatActivity {
 
                     if (mRoundNumber <= mNumberOfRounds) {
                         updateScoreTextview();
-                        if (mLocationSelector == null) {
-                            mLocationSelector = new LocationSelector(mStreetViewPanorama, this);
-                        }
-                        if (mPickRandomCountry) {
-                            mCountryCode = CountryListActivity.getRandomCode();
-                        }
-                        mLocationSelector.switchPanorama(mCountryCode);
+                        LatLng panoramaPosition = new LatLng(mLatitudes[mRoundNumber - 1], mLongitudes[mRoundNumber - 1]);
+                        mStreetViewPanorama.setPosition(panoramaPosition);
                         updateRoundsLeftTextview();
+                        setupCountDownTimer(true);
                     } else {
                         Bundle streetViewActivityResult = new Bundle();
                         streetViewActivityResult.putInt(RESULT_KEY_SCORE, mTotalScore);
@@ -247,11 +217,9 @@ public class StreetViewActivity extends AppCompatActivity {
         //current score
         outState.putInt(KEY_SAVED_STATE_TOTAL_SCORE, mTotalScore);
 
-        //choose random country?
-        outState.putBoolean(KEY_SAVED_STATE_RANDOM_COUNTRY, mPickRandomCountry);
-
-        //country code
-        outState.putString(KEY_SAVED_STATE_COUNTRY_CODE, mCountryCode);
+        //location latlngs
+        outState.putDoubleArray(KEY_SAVED_STATE_LATITUDES, mLatitudes);
+        outState.putDoubleArray(KEY_SAVED_STATE_LONGITUDES, mLongitudes);
     }
 
     @Override
@@ -301,6 +269,7 @@ public class StreetViewActivity extends AppCompatActivity {
                 @Override
                 public void onFinish() {
                     mTimerLeft = 0;
+                    mTxtTimer.setText("Time left: 0");
                     if (mSwitchToMapOnTimerEnd)
                         startMapActivity();
                 }

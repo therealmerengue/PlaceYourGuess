@@ -19,6 +19,7 @@ import java.util.Random;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
+import static android.R.attr.data;
 import static io.socket.client.Socket.EVENT_CONNECT;
 
 public class CountryListActivity extends AppCompatActivity {
@@ -27,13 +28,16 @@ public class CountryListActivity extends AppCompatActivity {
 
     private boolean mIsSingleplayer = true;
     private boolean mIsConnected = false;
+    private int mNumOfRounds;
 
     private Socket mSocket;
 
-    private static final int REQ_STREET_ACTIVITY = 101;
+    static final int REQ_STREET_ACTIVITY = 101;
 
     static final String EXTRA_SELECTED_COUNTRY_CODE = "COUNTRY_CODE";
     static final String EXTRA_RANDOM_COUNTRY = "RANDOM_COUNTRY";
+    static final String EXTRA_LATITUDES = "LATITUDES";
+    static final String EXTRA_LONGITUDES = "LONGITUDES";
 
     static final String[] mCountryNames = {
             "World",
@@ -301,17 +305,17 @@ public class CountryListActivity extends AppCompatActivity {
                     randomCountry = true;
                 }
 
+                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(CountryListActivity.this);
+                String numberOfRoundsStr = preferences.getString(getString(R.string.settings_numOfRounds), "5");
+                mNumOfRounds = Integer.parseInt(numberOfRoundsStr);
+
                 if (!mIsSingleplayer) {
                     boolean isHost = getIntent().getBooleanExtra(MultiplayerActivity.EXTRA_IS_HOST, true);
                     intent.putExtra(MultiplayerActivity.EXTRA_IS_HOST, isHost);
 
-                    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(CountryListActivity.this);
-                    String numberOfRoundsStr = preferences.getString(getString(R.string.settings_numOfRounds), "5");
-                    int numberOfRounds = Integer.parseInt(numberOfRoundsStr);
-
                     JSONObject gameLocationSettings = new JSONObject();
                     try {
-                        gameLocationSettings.put("numberOfRounds", numberOfRounds);
+                        gameLocationSettings.put("numberOfRounds", mNumOfRounds);
                         gameLocationSettings.put("randomCountry", randomCountry);
                         if (!randomCountry) {
                             gameLocationSettings.put("countryCode", selectedCountryCode);
@@ -331,9 +335,9 @@ public class CountryListActivity extends AppCompatActivity {
                         //get locations from socket
                     } else {
                         //load locations on phone
+                        LocationSelector selector = new LocationSelector(CountryListActivity.this, intent, mNumOfRounds, randomCountry, selectedCountryCode);
+                        selector.selectLocations();
                     }
-                    intent.putExtra(EXTRA_RANDOM_COUNTRY, randomCountry);
-                    startActivityForResult(intent, REQ_STREET_ACTIVITY);
                 }
             }
         });

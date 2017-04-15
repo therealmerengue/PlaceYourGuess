@@ -2,12 +2,14 @@ package com.example.trm.placeyourguess;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.util.Pair;
 
 import com.cocoahero.android.geojson.Feature;
 import com.cocoahero.android.geojson.FeatureCollection;
+import com.google.android.gms.identity.intents.model.CountrySpecification;
 import com.google.android.gms.maps.StreetViewPanorama;
 import com.google.android.gms.maps.model.LatLng;
 
@@ -22,34 +24,45 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+
+import static android.icu.lang.UCharacter.GraphemeClusterBreak.L;
 
 public class LocationSelector {
     private FeatureCollection mBoxesFeatureCollection;
     private JSONArray mCountriesInfo;
-    private StreetViewPanorama mPanorama;
-    private StreetViewActivity mContextActivity;
     private ProgressDialog mProgressDialog;
 
+    private CountryListActivity mContextActivity;
     private String mCountryCode;
+    private int mNumOfLocations;
+    private boolean mRandomLocation;
+    private Intent mStartGameIntent;
 
     private static final String URL_BEGINNING = "http://maps.google.com/cbk?output=json&hl=en&ll=";
-    private static final String URL_END = "&radius=100000&cb_client=maps_sv&v=4";
+    private static final String URL_END = "&radius=10000&cb_client=maps_sv&v=4";
 
-    public LocationSelector(StreetViewPanorama panorama, Context context) {
-        mPanorama = panorama;
-        mContextActivity = (StreetViewActivity) context;
+    public LocationSelector(Context context, Intent startGameIntent, int numberOfLocations, boolean randomLocation, String countryCode) {
+        mNumOfLocations = numberOfLocations;
+        mContextActivity = (CountryListActivity) context;
+        mRandomLocation = randomLocation;
+        mCountryCode = countryCode;
+        mStartGameIntent = startGameIntent;
 
         BoundingBoxesHolder bbHolder = BoundingBoxesHolder.getInstance();
         mBoxesFeatureCollection = bbHolder.getBoxes();
         mCountriesInfo = bbHolder.getCountries();
     }
 
-    public void switchPanorama(String countryCode) {
-        mCountryCode = countryCode;
-        Pair<LatLng, LatLng> bounds = getBounds(countryCode);
-        new ImageChecker().execute(bounds.first, bounds.second);
+    public void selectLocations() {
+        if (!mRandomLocation) {
+            Pair<LatLng, LatLng> bounds = getBounds(mCountryCode);
+            new ImageChecker().execute(bounds.first, bounds.second);
+        } else {
+            new ImageChecker().execute();
+        }
     }
 
     private Pair<LatLng, LatLng> getBounds(String countryCode) {
@@ -166,7 +179,15 @@ public class LocationSelector {
         return null;
     }
 
-    private class ImageChecker extends AsyncTask<LatLng, Void, JSONObject> {
+    private boolean isAlreadySelected(List<LatLng> locations, LatLng location) {
+        for (LatLng loc : locations) {
+            if (loc.equals(location))
+                return true;
+        }
+        return false;
+    }
+
+    private class ImageChecker extends AsyncTask<LatLng, Void, List<LatLng>> {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -174,48 +195,78 @@ public class LocationSelector {
         }
 
         @Override
-        protected JSONObject doInBackground(LatLng... params) {
-            LatLng southWest = params[0];
-            LatLng northEast = params[1];
+        protected List<LatLng> doInBackground(LatLng... params) {
+            LatLng southWest = null, northEast = null;
+            if (!mRandomLocation) {
+                southWest = params[0];
+                northEast = params[1];
+            }
 
-            JSONObject response = new JSONObject();
-            String locationCountryCode = null;
+            List<LatLng> locations = new ArrayList<>(mNumOfLocations);
 
-            while (response == null || response.length() == 0
-                    || locationCountryCode == null || !locationCountryCode.equals(mCountryCode)) {
-                LatLng randomLocation = getRandomLatLng(new Pair<>(southWest, northEast));
-                String url = URL_BEGINNING + randomLocation.latitude + "," + randomLocation.longitude + URL_END;
-                response = readJsonFromUrl(url);
-                if (response == null || response.length() == 0)
-                    continue;
+            for (int i = 0; i < mNumOfLocations; i++) {
+                JSONObject response = new JSONObject();
+                String locationCountryCode = null;
+
+                if (mRandomLocation) {
+                    mCountryCode = CountryListActivity.getRandomCode();
+                    Pair<LatLng, LatLng> bounds = getBounds(mCountryCode);
+                    southWest = bounds.first;
+                    northEast = bounds.second;
+                }
+
+                while (response == null || response.length() == 0
+                        || locationCountryCode == null || !locationCountryCode.equals(mCountryCode)) {
+                    LatLng randomLocation = getRandomLatLng(new Pair<>(southWest, northEast));
+                    String url = URL_BEGINNING + randomLocation.latitude + "," + randomLocation.longitude + URL_END;
+                    response = readJsonFromUrl(url);
+                    if (response == null || response.length() == 0)
+                        continue;
+
+                    try {
+                        JSONObject location = response.getJSONObject("Location");
+                        String locationCountryName = location.getString("country");
+                        locationCountryCode = getCountryCode(locationCountryName);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
 
                 try {
                     JSONObject location = response.getJSONObject("Location");
-                    String locationCountryName = location.getString("country");
-                    locationCountryCode = getCountryCode(locationCountryName);
+                    double lat = location.getDouble("lat");
+                    double lng = location.getDouble("lng");
+                    LatLng latLng = new LatLng(lat, lng);
+                    boolean alreadySelected = isAlreadySelected(locations, latLng);
+                    if (!alreadySelected) {
+                        locations.add(latLng);
+                    } else {
+                        i--;
+                    }
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
             }
-            return response;
+
+            return locations;
         }
 
         @Override
-        protected void onPostExecute(JSONObject result) {
+        protected void onPostExecute(List<LatLng> result) {
             super.onPostExecute(result);
-            double lat = 0, lng = 0;
 
-            try {
-                JSONObject location = result.getJSONObject("Location");
-                lat = location.getDouble("lat");
-                lng = location.getDouble("lng");
-            } catch (JSONException e) {
-                e.printStackTrace();
+            double[] latitudes = new double[result.size()];
+            double[] longitudes = new double[result.size()];
+
+            for (int i = 0; i < result.size(); i++) {
+                latitudes[i] = result.get(i).latitude;
+                longitudes[i] = result.get(i).longitude;
             }
 
-            LatLng location = new LatLng(lat, lng);
-            mPanorama.setPosition(location);
-            mContextActivity.setupCountDownTimer(true);
+            mStartGameIntent.putExtra(CountryListActivity.EXTRA_LATITUDES, latitudes);
+            mStartGameIntent.putExtra(CountryListActivity.EXTRA_LONGITUDES, longitudes);
+
+            mContextActivity.startActivityForResult(mStartGameIntent, CountryListActivity.REQ_STREET_ACTIVITY);
             mProgressDialog.dismiss();
         }
     }

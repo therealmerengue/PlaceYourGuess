@@ -35,16 +35,6 @@
         android:layout_gravity="top|center"
         android:textSize="25sp" />
 
-    <Button
-        android:id="@+id/btn_changeLocation"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|left"
-        android:layout_margin="16dp"
-        android:backgroundTint="@color/colorPrimaryDark"
-        android:text="@string/new_location"
-        android:textColor="#fff" />
-
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/btn_switchToMapView"
         android:layout_width="wrap_content"

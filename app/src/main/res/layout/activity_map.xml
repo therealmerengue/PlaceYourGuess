@@ -13,12 +13,66 @@
         android:id="@+id/frag_map"
         android:name="com.google.android.gms.maps.SupportMapFragment" />
 
-    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/frag_score"
-        android:name="com.example.trm.placeyourguess.ScoreFragment" />
+        android:orientation="horizontal"
+        android:background="#88ffffff"
+        android:visibility="gone"
+        android:id="@+id/layout_score">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_margin="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/distance"
+                android:id="@+id/txt_Distance"
+                android:textSize="16sp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/points"
+                android:id="@+id/txt_Points"
+                android:textSize="20sp"/>
+
+        </LinearLayout>
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_margin="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/total_score"
+                android:id="@+id/txt_TotalScore"
+                android:textSize="16sp"/>
+
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/btn_nextLocation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:background="#0D4F8B"
+                android:src="@drawable/arrow"
+                app:backgroundTint="@color/colorPrimaryDark" />
+
+        </LinearLayout>
+
+    </LinearLayout>
 
     <TextView
         android:layout_width="wrap_content"
