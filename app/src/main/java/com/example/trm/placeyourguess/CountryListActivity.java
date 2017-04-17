@@ -159,7 +159,7 @@ public class CountryListActivity extends AppCompatActivity {
 
     static final String[] mCountryCodes = {
             "AL",
-            "AD",
+            "AR",
             "AU",
             "BD",
             "BE",

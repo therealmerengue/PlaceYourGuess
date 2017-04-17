@@ -9,6 +9,7 @@ import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.util.LongSparseArray;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -274,14 +275,14 @@ public class StreetViewActivity extends AppCompatActivity {
                 @Override
                 public void onTick(long millisUntilFinished) {
                     long timeLeft = millisUntilFinished / 1000;
-                    mTxtTimer.setText("Time left:" + timeLeft);
+                    mTxtTimer.setText(Long.toString(timeLeft));
                     mTimerLeft = timeLeft;
                 }
 
                 @Override
                 public void onFinish() {
                     mTimerLeft = 0;
-                    mTxtTimer.setText("Time left: 0");
+                    mTxtTimer.setText("0");
                     if (mSwitchToMapOnTimerEnd)
                         startMapActivity();
                 }

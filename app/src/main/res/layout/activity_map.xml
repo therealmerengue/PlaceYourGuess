@@ -6,12 +6,11 @@
     android:layout_height="match_parent"
     tools:context="com.example.trm.placeyourguess.MapActivity">
 
-    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+    <fragment
         android:id="@+id/frag_map"
-        android:name="com.google.android.gms.maps.SupportMapFragment" />
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -19,58 +18,35 @@
         android:orientation="horizontal"
         android:background="#88ffffff"
         android:visibility="gone"
-        android:id="@+id/layout_score">
+        android:id="@+id/layout_score"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp">
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/txt_Points"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_margin="16dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/distance"
-                android:id="@+id/txt_Distance"
-                android:textSize="16sp"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/points"
-                android:id="@+id/txt_Points"
-                android:textSize="20sp"/>
-
-        </LinearLayout>
+            android:fontFamily="sans-serif-smallcaps"
+            android:text="@string/points"
+            android:textSize="20sp"
+            android:layout_gravity="center_vertical"/>
 
         <Space
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_weight="1" />
 
-        <LinearLayout
+        <Button
+            android:id="@+id/btn_nextLocation"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_margin="16dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/total_score"
-                android:id="@+id/txt_TotalScore"
-                android:textSize="16sp"/>
-
-            <android.support.design.widget.FloatingActionButton
-                android:id="@+id/btn_nextLocation"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:background="#0D4F8B"
-                android:src="@drawable/arrow"
-                app:backgroundTint="@color/colorPrimaryDark" />
-
-        </LinearLayout>
+            android:backgroundTint="?attr/colorPrimary"
+            android:drawableRight="@drawable/arrow"
+            android:drawablePadding="5dp"
+            android:text="@string/next"
+            android:textColor="#fff" />
 
     </LinearLayout>
 
@@ -79,18 +55,9 @@
         android:layout_height="wrap_content"
         android:id="@+id/txt_RoundTimer"
         android:layout_gravity="top|center"
-        android:textSize="16sp"/>
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/btn_confirm"
-        android:layout_margin="16dp"
-        android:text="@string/confirm"
-        android:layout_gravity="bottom|left"
-        android:enabled="false"
-        android:background="@color/colorPrimaryDark"
-        android:textColor="#fff"/>
+        android:layout_margin="10dp"
+        android:textSize="35sp"
+        android:fontFamily="sans-serif-smallcaps"/>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/btn_switchToStreetView"
@@ -98,7 +65,19 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|right"
         android:layout_margin="16dp"
-        android:src="@drawable/ic_cast_dark"
+        android:src="@drawable/streetview"
         app:backgroundTint="@color/colorPrimaryDark" />
+
+    <Button
+        android:id="@+id/btn_confirm"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:layout_gravity="bottom|left"
+        android:layout_margin="16dp"
+        android:background="@color/colorPrimaryDark"
+        android:enabled="false"
+        android:text="OK"
+        android:textColor="#fff"
+        android:textSize="18sp" />
 
 </FrameLayout>

@@ -16,6 +16,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -35,14 +36,13 @@ public class MapActivity extends AppCompatActivity {
 
     //score layout
     private LinearLayout mLayoutScore;
-    private TextView mTxtDistance;
     private TextView mTxtPoints;
-    private TextView mTxtTotalScore;
-    private FloatingActionButton mBtnNextLocation;
+    private Button mBtnNextLocation;
 
     private CountDownTimer mRoundTimer;
     private long mTimerValue;
     private boolean mGuessMade = false;
+    private boolean mGuessConfirmed = false;
 
     //activity result variable keys
     final static String RESULT_KEY_DISTANCE = "DISTANCE";
@@ -83,6 +83,7 @@ public class MapActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 mGuessMade = true;
+                mGuessConfirmed = true;
                 LatLng markerCoords = mGuessedLocationMarker.getPosition();
 
                 Location markerLocation = new Location("");
@@ -113,14 +114,11 @@ public class MapActivity extends AppCompatActivity {
             }
         });
 
-        //SCORE FRAGMENT
+        //SCORE LAYOUT
         mLayoutScore = (LinearLayout) findViewById(R.id.layout_score);
-
-        mTxtDistance = (TextView) findViewById(R.id.txt_Distance);
         mTxtPoints = (TextView) findViewById(R.id.txt_Points);
-        mTxtTotalScore = (TextView) findViewById(R.id.txt_TotalScore);
 
-        mBtnNextLocation = (FloatingActionButton) findViewById(R.id.btn_nextLocation);
+        mBtnNextLocation = (Button) findViewById(R.id.btn_nextLocation);
         mBtnNextLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -150,6 +148,11 @@ public class MapActivity extends AppCompatActivity {
             @Override
             public void onMapReady(GoogleMap googleMap) {
                 mMap = googleMap;
+                UiSettings settings = mMap.getUiSettings();
+                settings.setMapToolbarEnabled(false);
+                settings.setCompassEnabled(false);
+                settings.setRotateGesturesEnabled(false);
+                settings.setIndoorLevelPickerEnabled(false);
 
                 if (mPassedTimeLeft == 0) {
                     showResultOnMap();
@@ -171,16 +174,6 @@ public class MapActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-    }
-
-    @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putLong(KEY_SAVED_STATE_TIMER_VALUE, mTimerValue);
@@ -199,40 +192,40 @@ public class MapActivity extends AppCompatActivity {
     }
 
     private void showResultOnMap() {  //TODO: add score
-        String distanceSnippet;
-        if (mGuessOffset < 1000) {
-            distanceSnippet = Float.toString(mGuessOffset) + " m";
-        } else {
-            distanceSnippet = Float.toString(mGuessOffset / 1000) + " km";
-        }
-
         Marker actualLocation = mMap.addMarker(new MarkerOptions()
                 .position(mPassedLocationCoords)
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
-                .title("Distance")
-                .snippet(distanceSnippet));
-        actualLocation.showInfoWindow();
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
+
+        if (mGuessConfirmed) {
+            String distanceSnippet;
+            if (mGuessOffset < 1000) {
+                distanceSnippet = Float.toString(mGuessOffset) + " m";
+            } else {
+                distanceSnippet = Float.toString(mGuessOffset / 1000) + " km";
+            }
+
+            actualLocation.setTitle("Distance");
+            actualLocation.setSnippet(distanceSnippet);
+            actualLocation.showInfoWindow();
+        }
 
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mPassedLocationCoords, 3f));
         mMap.setOnMapClickListener(null);
         mBtnConfirm.setEnabled(false);
     }
 
-    private void showScore(float distance) {
+    private void showScore(float points) {
         mLayoutScore.setVisibility(View.VISIBLE);
-        String distanceLabel = getString(R.string.distance) + Float.toString(distance);
-        String pointsLabel = getString(R.string.points); //TODO: add points
-        String totalScoreLabel = getString(R.string.total_score); //TODO: add total score
+        mTxtRoundTimer.setVisibility(View.GONE);
+        String pointsLabel = getString(R.string.points) + " " + points; //TODO: add points
 
-        mTxtDistance.setText(distanceLabel);
         mTxtPoints.setText(pointsLabel);
-        mTxtTotalScore.setText(totalScoreLabel);
     }
 
     private void initTimer() {
         if (mPassedTimeLeft != -1) {
             mTxtRoundTimer = (TextView) findViewById(R.id.txt_RoundTimer);
-            mTxtRoundTimer.setText("Time left: " + mPassedTimeLeft);
+            mTxtRoundTimer.setText(Long.toString(mPassedTimeLeft));
 
             if (mPassedTimeLeft == 0) {
                 showScore(0);
@@ -241,7 +234,7 @@ public class MapActivity extends AppCompatActivity {
                 mRoundTimer = new CountDownTimer(mPassedTimeLeft * 1000, 1000) {
                     @Override
                     public void onTick(long millisUntilFinished) {
-                        mTxtRoundTimer.setText("Time left: " + millisUntilFinished / 1000);
+                        mTxtRoundTimer.setText(Long.toString(millisUntilFinished / 1000));
                         mTimerValue = millisUntilFinished / 1000;
                     }
 
@@ -251,7 +244,7 @@ public class MapActivity extends AppCompatActivity {
                         if (mMap != null) {
                             showResultOnMap();
                         }
-                        mTxtRoundTimer.setText("Time left: " + 0);
+                        mTxtRoundTimer.setText("0");
                         showScore(0);
                     }
                 }.start();
