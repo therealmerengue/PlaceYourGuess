@@ -1,14 +1,10 @@
 package com.example.trm.placeyourguess;
 
 import android.os.CountDownTimer;
-import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.Fragment;
 import android.content.Intent;
 import android.graphics.Color;
 import android.location.Location;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -16,6 +12,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -105,7 +102,7 @@ public class MapActivity extends AppCompatActivity {
 
                 mMap.addPolyline(line);
 
-                disableMapControls();
+                showResultOnMap();
                 showScore(mGuessOffset);
 
                 if (mRoundTimer != null) {
@@ -155,7 +152,7 @@ public class MapActivity extends AppCompatActivity {
                 mMap = googleMap;
 
                 if (mPassedTimeLeft == 0) {
-                    disableMapControls();
+                    showResultOnMap();
                 } else {
                     mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
                         @Override
@@ -201,11 +198,22 @@ public class MapActivity extends AppCompatActivity {
         }
     }
 
-    private void disableMapControls() {  //TODO: add score
-        mMap.addMarker(new MarkerOptions()
-                .position(mPassedLocationCoords)
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
+    private void showResultOnMap() {  //TODO: add score
+        String distanceSnippet;
+        if (mGuessOffset < 1000) {
+            distanceSnippet = Float.toString(mGuessOffset) + " m";
+        } else {
+            distanceSnippet = Float.toString(mGuessOffset / 1000) + " km";
+        }
 
+        Marker actualLocation = mMap.addMarker(new MarkerOptions()
+                .position(mPassedLocationCoords)
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
+                .title("Distance")
+                .snippet(distanceSnippet));
+        actualLocation.showInfoWindow();
+
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mPassedLocationCoords, 3f));
         mMap.setOnMapClickListener(null);
         mBtnConfirm.setEnabled(false);
     }
@@ -241,7 +249,7 @@ public class MapActivity extends AppCompatActivity {
                     public void onFinish() {
                         mGuessMade = true;
                         if (mMap != null) {
-                            disableMapControls();
+                            showResultOnMap();
                         }
                         mTxtRoundTimer.setText("Time left: " + 0);
                         showScore(0);

@@ -32,6 +32,50 @@ public class CountryListActivity extends AppCompatActivity {
     private int mNumOfRounds;
 
     private Socket mSocket;
+    private final String EVENT_START_SINGLEPLAYER_GAME = "startSingleplayerGame";
+    private Emitter.Listener onConnectListener = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            Log.e("SOCK", "EVENT_CONNECT");
+            mIsConnected = true;
+        }
+    };
+    private Emitter.Listener onDisconnectListener = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            mIsConnected = false;
+        }
+    };
+    private Emitter.Listener onConnectErrorListener = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            Log.e("SOCK", "EVENT_CONNECT_ERROR");
+            mIsConnected = false;
+        }
+    };
+    private Emitter.Listener onStartSingleplayerGameListener = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            JSONArray locations = (JSONArray) args[0];
+            int numOfRounds = locations.length();
+            double[] latitudes = new double[numOfRounds];
+            double[] longitudes = new double[numOfRounds];
+
+            for (int i = 0; i < numOfRounds; i++) {
+                try {
+                    JSONObject location = locations.getJSONObject(i);
+                    latitudes[i] = location.getDouble("lat");
+                    longitudes[i] = location.getDouble("lng");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+            Log.e("SERV", "Starting game");
+            mStartGameIntent.putExtra(EXTRA_LATITUDES, latitudes);
+            mStartGameIntent.putExtra(EXTRA_LONGITUDES, longitudes);
+            startActivity(mStartGameIntent);
+        }
+    };
 
     private Intent mStartGameIntent;
 
@@ -264,47 +308,12 @@ public class CountryListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_country_list);
 
         mSocket = SocketHolder.getInstance();
-        mSocket.connect();
-        mSocket.on(EVENT_CONNECT, new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                Log.e("SOCK", "EVENT_CONNECT");
-                mIsConnected = true;
-            }
-        }).on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                Log.e("SOCK", "EVENT_CONNECT_ERROR");
-                mIsConnected = false;
-            }
-        }).on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                mIsConnected = false;
-            }
-        }).on("startSingleplayerGame", new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                JSONArray locations = (JSONArray) args[0];
-                int numOfRounds = locations.length();
-                double[] latitudes = new double[numOfRounds];
-                double[] longitudes = new double[numOfRounds];
-
-                for (int i = 0; i < numOfRounds; i++) {
-                    try {
-                        JSONObject location = locations.getJSONObject(i);
-                        latitudes[i] = location.getDouble("lat");
-                        longitudes[i] = location.getDouble("lng");
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }
-                Log.e("SERV", "Starting game");
-                mStartGameIntent.putExtra(EXTRA_LATITUDES, latitudes);
-                mStartGameIntent.putExtra(EXTRA_LONGITUDES, longitudes);
-                startActivity(mStartGameIntent);
-            }
-        });
+        mSocket.on(EVENT_CONNECT, onConnectListener)
+                .on(Socket.EVENT_CONNECT_ERROR, onConnectErrorListener)
+                .on(Socket.EVENT_DISCONNECT, onDisconnectListener)
+                .on(EVENT_START_SINGLEPLAYER_GAME, onStartSingleplayerGameListener);
+        if (!mSocket.connected())
+            mSocket.connect();
 
         mIsSingleplayer = getIntent().getBooleanExtra(MainActivity.EXTRA_IS_SINGLEPLAYER, true);
 
@@ -332,19 +341,16 @@ public class CountryListActivity extends AppCompatActivity {
                 mNumOfRounds = Integer.parseInt(numberOfRoundsStr);
 
                 if (!mIsSingleplayer) { //MULTIPLAYER
-                    boolean isHost = getIntent().getBooleanExtra(MultiplayerActivity.EXTRA_IS_HOST, true);
-                    mStartGameIntent.putExtra(MultiplayerActivity.EXTRA_IS_HOST, isHost);
-                    //doesn't work yet
-                    mSocket.emit("loadLocations", getSettings(randomCountry, selectedCountryCode));
+                    String timerLimitStr = preferences.getString(getString(R.string.settings_timerLimit), "-1");
+                    int timerLimit = Integer.parseInt(timerLimitStr);
 
-                    //TODO: replace startGame event with loadLocations event or something
-                    //on server side load all locations given number of rounds and country code
-                    //emit locationsLoaded back to clients -> send loaded locations back to all clients
-                    //start the game (emit startGame) -> load game settings from host
+                    //doesn't work yet
+                    mSocket.emit("loadLocations", getSettings(randomCountry, selectedCountryCode, timerLimit));
+                    Log.e("loadLocations", "host emits load locations");
                 } else {
                     if (mIsConnected) { //SINGLEPLAYER
                         //get locations from socket
-                        mSocket.emit("loadLocations", getSettings(randomCountry, selectedCountryCode));
+                        mSocket.emit("loadLocations", getSettings(randomCountry, selectedCountryCode, -1));
                     } else {
                         //load locations on phone
                         LocationSelector selector = new LocationSelector(CountryListActivity.this, mStartGameIntent, mNumOfRounds, randomCountry, selectedCountryCode);
@@ -370,11 +376,25 @@ public class CountryListActivity extends AppCompatActivity {
         }
     }
 
-    private JSONObject getSettings(boolean randomCountry, String countryCode) {
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mIsSingleplayer)
+            mSocket.disconnect();
+        mSocket.off(Socket.EVENT_CONNECT, onConnectListener);
+        mSocket.off(Socket.EVENT_CONNECT_ERROR, onConnectErrorListener);
+        mSocket.off(Socket.EVENT_DISCONNECT, onDisconnectListener);
+        mSocket.off("startSingleplayerGame", onStartSingleplayerGameListener);
+    }
+
+    private JSONObject getSettings(boolean randomCountry, String countryCode, int timerLimit) {
         JSONObject settings = new JSONObject();
 
         try {
             settings.put("isSingleplayer", mIsSingleplayer);
+            if (!mIsSingleplayer) {
+                settings.put("timerLimit", timerLimit);
+            }
             settings.put("numberOfRounds", mNumOfRounds);
             settings.put("randomCountry", randomCountry);
             if (!randomCountry) {

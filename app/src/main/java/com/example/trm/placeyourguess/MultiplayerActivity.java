@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -21,9 +22,113 @@ import java.net.URISyntaxException;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
+import static com.example.trm.placeyourguess.CountryListActivity.EXTRA_LATITUDES;
+import static com.example.trm.placeyourguess.CountryListActivity.EXTRA_LONGITUDES;
+
 public class MultiplayerActivity extends AppCompatActivity {
 
     private Socket mSocket;
+    private final String EVENT_NOMINATE_HOST = "nominateHost";
+    private final String EVENT_START_MULTIPLAYER_GAME = "startMultiplayerGame";
+    private final String EVENT_JOINED_ROOM = "joinedRoom";
+    private final String EVENT_PLAYER_LEFT = "playerLeft";
+    private final String EVENT_PLAYER_JOINED = "playerJoined";
+    private Emitter.Listener onConnectListener = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(MultiplayerActivity.this, "Connected to server.", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+    };
+    private Emitter.Listener onConnectErrorListener = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(MultiplayerActivity.this, "Unable to connect to server.", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+    };
+    private Emitter.Listener onDisconnectListener = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (mJoinedChannel) {
+                        emitLeaveRoom();
+                    }
+                    Toast.makeText(MultiplayerActivity.this, "Disconnected from server.", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+    };
+    private Emitter.Listener onNominateHostListener = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            mIsHost = true;
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mLayoutHostControls.setVisibility(View.VISIBLE);
+                }
+            });
+        }
+    };
+    private Emitter.Listener onStartMultiplayerGameListener = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            JSONObject settings = (JSONObject) args[0];
+            JSONArray locations = null;
+            int timerLimit = -1;
+            try {
+                locations = settings.getJSONArray("locations");
+                timerLimit = settings.getInt("timerLimit");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            int numOfRounds = locations.length();
+            double[] latitudes = new double[numOfRounds];
+            double[] longitudes = new double[numOfRounds];
+
+            for (int i = 0; i < numOfRounds; i++) {
+                try {
+                    JSONObject location = locations.getJSONObject(i);
+                    latitudes[i] = location.getDouble("lat");
+                    longitudes[i] = location.getDouble("lng");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            Log.e("startMultiplayerGame", "Starting multiplayer game");
+
+            //TODO: this used to work with old StreetViewActivity, now probably doesn't work
+            Intent intent = new Intent(MultiplayerActivity.this, StreetViewActivity.class);
+            intent.putExtra(EXTRA_TIMER_LIMIT, timerLimit);
+            intent.putExtra(EXTRA_IS_HOST, mIsHost);
+            intent.putExtra(MainActivity.EXTRA_IS_SINGLEPLAYER, false);
+            intent.putExtra(EXTRA_LATITUDES, latitudes);
+            intent.putExtra(EXTRA_LONGITUDES, longitudes);
+
+            startActivity(intent);
+        }
+    };
+    private Emitter.Listener playerCountChangeListener = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            JSONArray playersList = (JSONArray) args[0];
+            updateRoomList(playerListToString(playersList));
+            mPlayersInRoom = playersList.length();
+        }
+    };
 
     private TextView mTxtChannelState;
     private EditText mEditChannel;
@@ -43,16 +148,6 @@ public class MultiplayerActivity extends AppCompatActivity {
     //intent extras' tags
     static final String EXTRA_IS_HOST = "IS_HOST";
     static final String EXTRA_TIMER_LIMIT = "EXTRA_TIMER_LIMIT";
-    static final String EXTRA_NUMBER_OF_ROUNDS = "EXTRA_NUMBER_OF_ROUNDS";
-
-    private Emitter.Listener playerCountChangeListener = new Emitter.Listener() {
-        @Override
-        public void call(Object... args) {
-            JSONArray playersList = (JSONArray) args[0];
-            updateRoomList(playerListToString(playersList));
-            mPlayersInRoom = playersList.length();
-        }
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,71 +156,16 @@ public class MultiplayerActivity extends AppCompatActivity {
 
         mSocket = SocketHolder.getInstance();
 
-        mSocket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(MultiplayerActivity.this, "Connected to server.", Toast.LENGTH_LONG).show();
-                    }
-                });
-            }
-        }).on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(MultiplayerActivity.this, "Unable to connect to server.", Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-        }).on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (mJoinedChannel) {
-                            emitLeaveRoom();
-                        }
-                        Toast.makeText(MultiplayerActivity.this, "Disconnected from server.", Toast.LENGTH_LONG).show();
-                    }
-                });
-            }
-        }).on("nominateHost", new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                mIsHost = true;
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mLayoutHostControls.setVisibility(View.VISIBLE);
-                    }
-                });
-            }
-        }).on("clientStartGame", new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                JSONObject gameSettings = (JSONObject) args[0];
-                try {
-                    int timerLimit = gameSettings.getInt("timerLimit");
-                    int numberOfRounds = gameSettings.getInt("numberOfRounds");
-                    //TODO: this used to work with old StreetViewActivity, now probably doesn't work
-                    Intent intent = new Intent(MultiplayerActivity.this, StreetViewActivity.class);
-                    intent.putExtra(EXTRA_NUMBER_OF_ROUNDS, numberOfRounds);
-                    intent.putExtra(EXTRA_TIMER_LIMIT, timerLimit);
-                    intent.putExtra(EXTRA_IS_HOST, false);
-                    intent.putExtra(MainActivity.EXTRA_IS_SINGLEPLAYER, false);
-
-                    startActivity(intent);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).on("joinedRoom", playerCountChangeListener).on("playerLeft", playerCountChangeListener).on("playerJoined", playerCountChangeListener);
-        mSocket.connect();
+        mSocket.on(Socket.EVENT_CONNECT, onConnectListener)
+                .on(Socket.EVENT_CONNECT_ERROR, onConnectErrorListener)
+                .on(Socket.EVENT_DISCONNECT, onDisconnectListener)
+                .on(EVENT_NOMINATE_HOST, onNominateHostListener)
+                .on(EVENT_START_MULTIPLAYER_GAME, onStartMultiplayerGameListener)
+                .on(EVENT_JOINED_ROOM, playerCountChangeListener)
+                .on(EVENT_PLAYER_LEFT, playerCountChangeListener)
+                .on(EVENT_PLAYER_JOINED, playerCountChangeListener);
+        if (!mSocket.connected())
+            mSocket.connect();
 
         mTxtChannelState = (TextView) findViewById(R.id.txt_channelState);
         mEditChannel = (EditText) findViewById(R.id.edit_channel);
@@ -227,8 +267,22 @@ public class MultiplayerActivity extends AppCompatActivity {
         if (mJoinedChannel) {
             mBtnLeave.callOnClick();
         }
-        mSocket.disconnect();
+
         super.onBackPressed();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mSocket.disconnect();
+        mSocket.off(Socket.EVENT_CONNECT, onConnectListener)
+                .off(Socket.EVENT_CONNECT_ERROR, onConnectErrorListener)
+                .off(Socket.EVENT_DISCONNECT, onDisconnectListener)
+                .off(EVENT_NOMINATE_HOST, onNominateHostListener)
+                .off(EVENT_START_MULTIPLAYER_GAME, onStartMultiplayerGameListener)
+                .off(EVENT_JOINED_ROOM, playerCountChangeListener)
+                .off(EVENT_PLAYER_LEFT, playerCountChangeListener)
+                .off(EVENT_PLAYER_JOINED, playerCountChangeListener);
     }
 
     private void emitLeaveRoom() {

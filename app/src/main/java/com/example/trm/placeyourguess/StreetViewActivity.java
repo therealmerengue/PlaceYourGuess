@@ -2,6 +2,7 @@ package com.example.trm.placeyourguess;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.preference.PreferenceManager;
@@ -16,6 +17,8 @@ import com.google.android.gms.maps.OnStreetViewPanoramaReadyCallback;
 import com.google.android.gms.maps.StreetViewPanorama;
 import com.google.android.gms.maps.SupportStreetViewPanoramaFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.StreetViewPanoramaCamera;
+import com.google.android.gms.maps.model.StreetViewPanoramaLocation;
 
 import static com.example.trm.placeyourguess.MapActivity.RESULT_KEY_DISTANCE;
 
@@ -64,45 +67,16 @@ public class StreetViewActivity extends AppCompatActivity {
     //multiplayer only
     private final static String KEY_SAVED_STATE_IS_SINGLEPLAYER = "IS_SINGLEPLAYER";
     private final static String KEY_SAVED_STATE_IS_HOST = "KEY_IS_HOST";
+    private final static String KEY_SAVED_STATE_TIMER_LIMIT = "KEY_TIMER_LIMIT";
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_street_view);
 
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-
-        //timer limit
-        String timerLimitStr = preferences.getString(getString(R.string.settings_timerLimit), "-1");
-        mTimerLimit = Integer.parseInt(timerLimitStr);
-
         mTxtTimer = (TextView) findViewById(R.id.txt_Timer);
         mTxtTotalScore = (TextView) findViewById(R.id.txt_Score);
         mTxtRoundsLeft = (TextView) findViewById(R.id.txt_Roundsleft);
-
-        if (savedInstanceState == null) {
-            Intent intent = getIntent();
-            mIsSingleplayer = intent.getBooleanExtra(MainActivity.EXTRA_IS_SINGLEPLAYER, true);
-            if (!mIsSingleplayer) {
-                mIsHost = intent.getBooleanExtra(MultiplayerActivity.EXTRA_IS_HOST, true);
-            }
-            mLatitudes = intent.getDoubleArrayExtra(CountryListActivity.EXTRA_LATITUDES);
-            mLongitudes = intent.getDoubleArrayExtra(CountryListActivity.EXTRA_LONGITUDES);
-
-            setupCountDownTimer(true);
-        } else {
-            mIsSingleplayer = savedInstanceState.getBoolean(KEY_SAVED_STATE_IS_SINGLEPLAYER);
-            if (!mIsSingleplayer) {
-                mIsHost = savedInstanceState.getBoolean(KEY_SAVED_STATE_IS_HOST);
-            }
-
-            mLatitudes = savedInstanceState.getDoubleArray(KEY_SAVED_STATE_LATITUDES);
-            mLongitudes = savedInstanceState.getDoubleArray(KEY_SAVED_STATE_LONGITUDES);
-
-            mRoundNumber = savedInstanceState.getInt(KEY_SAVED_STATE_ROUND_NUMBER);
-            mTimerLeft = savedInstanceState.getLong(KEY_SAVED_STATE_TIMER_VALUE);
-            setupCountDownTimer(false);
-        }
 
         //btnSwitchToMap
         mBtnSwitchToMap = (FloatingActionButton) findViewById(R.id.btn_switchToMapView);
@@ -113,15 +87,49 @@ public class StreetViewActivity extends AppCompatActivity {
             }
         });
 
-        //totalScore
-        if (savedInstanceState != null) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        if (savedInstanceState == null) {
+            Intent intent = getIntent();
+            mIsSingleplayer = intent.getBooleanExtra(MainActivity.EXTRA_IS_SINGLEPLAYER, true);
+            if (!mIsSingleplayer) {
+                mIsHost = intent.getBooleanExtra(MultiplayerActivity.EXTRA_IS_HOST, true);
+
+                mTimerLimit = intent.getIntExtra(MultiplayerActivity.EXTRA_TIMER_LIMIT, -1);
+            } else {
+                String timerLimitStr = preferences.getString(getString(R.string.settings_timerLimit), "-1");
+                mTimerLimit = Integer.parseInt(timerLimitStr);
+            }
+
+            mLatitudes = intent.getDoubleArrayExtra(CountryListActivity.EXTRA_LATITUDES);
+            mLongitudes = intent.getDoubleArrayExtra(CountryListActivity.EXTRA_LONGITUDES);
+
+            setupCountDownTimer(true);
+        } else {
+            mIsSingleplayer = savedInstanceState.getBoolean(KEY_SAVED_STATE_IS_SINGLEPLAYER);
+            if (!mIsSingleplayer) {
+                mIsHost = savedInstanceState.getBoolean(KEY_SAVED_STATE_IS_HOST);
+
+                mTimerLimit = savedInstanceState.getInt(KEY_SAVED_STATE_TIMER_LIMIT);
+            } else {
+                String timerLimitStr = preferences.getString(getString(R.string.settings_timerLimit), "-1");
+                mTimerLimit = Integer.parseInt(timerLimitStr);
+            }
+
+            mLatitudes = savedInstanceState.getDoubleArray(KEY_SAVED_STATE_LATITUDES);
+            mLongitudes = savedInstanceState.getDoubleArray(KEY_SAVED_STATE_LONGITUDES);
+
+            mRoundNumber = savedInstanceState.getInt(KEY_SAVED_STATE_ROUND_NUMBER);
+            mTimerLeft = savedInstanceState.getLong(KEY_SAVED_STATE_TIMER_VALUE);
+
             mTotalScore = savedInstanceState.getInt(KEY_SAVED_STATE_TOTAL_SCORE);
+            updateScoreTextview();
+
+            setupCountDownTimer(false);
         }
-        updateScoreTextview();
 
         //numberOfRounds
-        String numberOfRoundsStr = preferences.getString(getString(R.string.settings_numOfRounds), "5");
-        mNumberOfRounds = Integer.parseInt(numberOfRoundsStr);
+        mNumberOfRounds = mLatitudes.length;
         updateRoundsLeftTextview();
 
         //Street View panorama
@@ -196,9 +204,12 @@ public class StreetViewActivity extends AppCompatActivity {
 
         //current Street View location
         if (mStreetViewPanorama != null) {
-            LatLng position = mStreetViewPanorama.getLocation().position;
-            outState.putDouble(KEY_SAVED_STATE_LOCATION_LAT, position.latitude);
-            outState.putDouble(KEY_SAVED_STATE_LOCATION_LNG, position.longitude);
+            StreetViewPanoramaLocation location = mStreetViewPanorama.getLocation();
+            if (location != null) {
+                LatLng position = mStreetViewPanorama.getLocation().position;
+                outState.putDouble(KEY_SAVED_STATE_LOCATION_LAT, position.latitude);
+                outState.putDouble(KEY_SAVED_STATE_LOCATION_LNG, position.longitude);
+            }
         }
 
         //is singleplayer
@@ -206,6 +217,7 @@ public class StreetViewActivity extends AppCompatActivity {
         //if multiplayer - is host
         if (!mIsSingleplayer) {
             outState.putBoolean(KEY_SAVED_STATE_IS_HOST, mIsHost);
+            outState.putInt(KEY_SAVED_STATE_TIMER_LIMIT, mTimerLimit);
         }
 
         //current timer value
