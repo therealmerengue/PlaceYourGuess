@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.location.Location;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -23,11 +24,14 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import static com.example.trm.placeyourguess.R.string.points;
+
 public class MapActivity extends AppCompatActivity {
 
     private SupportMapFragment mFragMap;
     private GoogleMap mMap;
     private Marker mGuessedLocationMarker;
+    private Marker mActualLocationMarker;
     private LatLng mPassedLocationCoords;
 
     private Button mBtnConfirm;
@@ -43,9 +47,10 @@ public class MapActivity extends AppCompatActivity {
     private long mTimerValue;
     private boolean mGuessMade = false;
     private boolean mGuessConfirmed = false;
+    private int mScore;
 
     //activity result variable keys
-    final static String RESULT_KEY_DISTANCE = "DISTANCE";
+    final static String RESULT_KEY_SCORE = "SCORE";
 
     //SaveInstanceState variable keys
     private final static String KEY_SAVED_STATE_TIMER_VALUE = "TIMER";
@@ -104,7 +109,7 @@ public class MapActivity extends AppCompatActivity {
                 mMap.addPolyline(line);
 
                 showResultOnMap();
-                showScore(mGuessOffset);
+                showScore(mGuessOffset / 1000);
 
                 if (mRoundTimer != null) {
                     mRoundTimer.cancel();
@@ -123,7 +128,7 @@ public class MapActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Bundle resultData = new Bundle();
-                resultData.putFloat(RESULT_KEY_DISTANCE, mGuessOffset);
+                resultData.putInt(RESULT_KEY_SCORE, mScore);
                 Intent intent = new Intent();
                 intent.putExtras(resultData);
 
@@ -168,6 +173,16 @@ public class MapActivity extends AppCompatActivity {
                             mBtnConfirm.setEnabled(true);
                         }
                     });
+
+                    mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                        @Override
+                        public boolean onMarkerClick(Marker marker) {
+                            if (mActualLocationMarker != null) {
+                                mActualLocationMarker.showInfoWindow();
+                            }
+                            return true;
+                        }
+                    });
                 }
             }
         });
@@ -192,7 +207,7 @@ public class MapActivity extends AppCompatActivity {
     }
 
     private void showResultOnMap() {  //TODO: add score
-        Marker actualLocation = mMap.addMarker(new MarkerOptions()
+        mActualLocationMarker = mMap.addMarker(new MarkerOptions()
                 .position(mPassedLocationCoords)
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
 
@@ -204,20 +219,32 @@ public class MapActivity extends AppCompatActivity {
                 distanceSnippet = Float.toString(mGuessOffset / 1000) + " km";
             }
 
-            actualLocation.setTitle("Distance");
-            actualLocation.setSnippet(distanceSnippet);
-            actualLocation.showInfoWindow();
+            mActualLocationMarker.setTitle("Distance");
+            mActualLocationMarker.setSnippet(distanceSnippet);
+            mActualLocationMarker.showInfoWindow();
         }
 
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mPassedLocationCoords, 3f));
-        mMap.setOnMapClickListener(null);
+        if (mMap.getCameraPosition().zoom < 3) {
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mPassedLocationCoords, 3f));
+        } else {
+            mMap.animateCamera(CameraUpdateFactory.newLatLng(mPassedLocationCoords));
+        }
+
+        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() { //to prevent infoWindow from disappearing
+            @Override
+            public void onMapClick(LatLng latLng) {
+                mActualLocationMarker.showInfoWindow();
+            }
+        });
         mBtnConfirm.setEnabled(false);
     }
 
-    private void showScore(float points) {
+    private void showScore(float distance) {
         mLayoutScore.setVisibility(View.VISIBLE);
         mTxtRoundTimer.setVisibility(View.GONE);
-        String pointsLabel = getString(R.string.points) + " " + points; //TODO: add points
+
+        mScore = PointCalculator.calculatePoints(distance);
+        String pointsLabel = getString(points) + " " + mScore; //TODO: add points
 
         mTxtPoints.setText(pointsLabel);
     }

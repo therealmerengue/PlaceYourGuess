@@ -2,26 +2,19 @@ package com.example.trm.placeyourguess;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.location.Location;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
-import android.util.LongSparseArray;
 import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.OnStreetViewPanoramaReadyCallback;
 import com.google.android.gms.maps.StreetViewPanorama;
 import com.google.android.gms.maps.SupportStreetViewPanoramaFragment;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.StreetViewPanoramaCamera;
 import com.google.android.gms.maps.model.StreetViewPanoramaLocation;
-
-import static com.example.trm.placeyourguess.MapActivity.RESULT_KEY_DISTANCE;
 
 public class StreetViewActivity extends AppCompatActivity {
 
@@ -124,10 +117,11 @@ public class StreetViewActivity extends AppCompatActivity {
             mTimerLeft = savedInstanceState.getLong(KEY_SAVED_STATE_TIMER_VALUE);
 
             mTotalScore = savedInstanceState.getInt(KEY_SAVED_STATE_TOTAL_SCORE);
-            updateScoreTextview();
 
             setupCountDownTimer(false);
         }
+
+        updateScoreTextview();
 
         //numberOfRounds
         mNumberOfRounds = mLatitudes.length;
@@ -161,8 +155,8 @@ public class StreetViewActivity extends AppCompatActivity {
                 if (resultCode == RESULT_OK) {
                     mRoundNumber++;
                     Bundle mapActivityResult = data.getExtras();
-                    float distance = mapActivityResult.getFloat(RESULT_KEY_DISTANCE); //TODO: calculate points based on that instead of adding it straight to score
-                    mTotalScore += Math.round(distance);
+                    int score = mapActivityResult.getInt(MapActivity.RESULT_KEY_SCORE);
+                    mTotalScore += score;
 
                     if (mRoundNumber <= mNumberOfRounds) {
                         updateScoreTextview();
