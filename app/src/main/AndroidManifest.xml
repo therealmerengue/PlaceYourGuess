@@ -25,25 +25,21 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity android:name=".StreetViewActivity" />
-
         <activity android:name=".MapActivity" />
-
         <activity
             android:name=".SettingsActivity"
             android:label="Settings"
             android:theme="@style/AppThemeActionBar" />
-
         <activity
             android:name=".CountryListActivity"
             android:label="Choose location"
             android:theme="@style/AppThemeActionBar" />
-
         <activity
             android:name=".MultiplayerActivity"
             android:label="Multiplayer"
-            android:theme="@style/AppThemeActionBar"/>
+            android:theme="@style/AppThemeActionBar" />
+        <activity android:name=".ScoreSPActivity"></activity>
     </application>
 
 </manifest>

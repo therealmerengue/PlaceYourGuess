@@ -28,11 +28,13 @@ import static com.example.trm.placeyourguess.CountryListActivity.EXTRA_LONGITUDE
 public class MultiplayerActivity extends AppCompatActivity {
 
     private Socket mSocket;
+
     private final String EVENT_NOMINATE_HOST = "nominateHost";
     private final String EVENT_START_MULTIPLAYER_GAME = "startMultiplayerGame";
     private final String EVENT_JOINED_ROOM = "joinedRoom";
     private final String EVENT_PLAYER_LEFT = "playerLeft";
     private final String EVENT_PLAYER_JOINED = "playerJoined";
+
     private Emitter.Listener onConnectListener = new Emitter.Listener() {
         @Override
         public void call(Object... args) {
@@ -110,7 +112,6 @@ public class MultiplayerActivity extends AppCompatActivity {
 
             Log.e("startMultiplayerGame", "Starting multiplayer game");
 
-            //TODO: this used to work with old StreetViewActivity, now probably doesn't work
             Intent intent = new Intent(MultiplayerActivity.this, StreetViewActivity.class);
             intent.putExtra(EXTRA_TIMER_LIMIT, timerLimit);
             intent.putExtra(EXTRA_IS_HOST, mIsHost);
@@ -118,7 +119,7 @@ public class MultiplayerActivity extends AppCompatActivity {
             intent.putExtra(EXTRA_LATITUDES, latitudes);
             intent.putExtra(EXTRA_LONGITUDES, longitudes);
 
-            startActivity(intent);
+            startActivityForResult(intent, REQ_STREET_VIEW_ACTIVITY);
         }
     };
     private Emitter.Listener playerCountChangeListener = new Emitter.Listener() {
@@ -144,6 +145,8 @@ public class MultiplayerActivity extends AppCompatActivity {
     private boolean mJoinedChannel = false;
     private boolean mIsHost = false;
     private int mPlayersInRoom = 1;
+
+    static final int REQ_STREET_VIEW_ACTIVITY = 101;
 
     //intent extras' tags
     static final String EXTRA_IS_HOST = "IS_HOST";
@@ -283,6 +286,21 @@ public class MultiplayerActivity extends AppCompatActivity {
                 .off(EVENT_JOINED_ROOM, playerCountChangeListener)
                 .off(EVENT_PLAYER_LEFT, playerCountChangeListener)
                 .off(EVENT_PLAYER_JOINED, playerCountChangeListener);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        switch (requestCode) {
+            case REQ_STREET_VIEW_ACTIVITY:
+                if (data != null) { //TODO: start ScoreMPActivity, emit loadScores event (maybe even before finishing StreetViewActivity)
+                    Bundle resultData = data.getExtras();
+                    int score = resultData.getInt(StreetViewActivity.RESULT_KEY_SCORE);
+                    Toast.makeText(this, Integer.toString(score), Toast.LENGTH_LONG).show();
+                }
+                break;
+        }
     }
 
     private void emitLeaveRoom() {

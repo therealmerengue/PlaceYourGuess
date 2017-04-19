@@ -1,6 +1,7 @@
 package com.example.trm.placeyourguess;
 
 import android.app.Activity;
+import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,15 +22,31 @@ public class CountryListAdapter extends ArrayAdapter<String> {
         this.imgID = imgIDs;
     }
 
+    @NonNull
     public View getView(int position, View view, ViewGroup parent) {
-        LayoutInflater inflater = context.getLayoutInflater();
-        View rowView = inflater.inflate(R.layout.list_item, null, true);
+        ViewHolder holder;
 
-        TextView txtCountryName = (TextView) rowView.findViewById(R.id.txt_countryName);
-        ImageView ivFlag = (ImageView) rowView.findViewById(R.id.iv_flag);
+        if (view == null) {
+            LayoutInflater inflater = context.getLayoutInflater();
+            view = inflater.inflate(R.layout.list_item, null, true);
+            holder = new ViewHolder();
+            holder.mTxtCountryName = (TextView) view.findViewById(R.id.txt_countryName);
+            holder.mIvFlag = (ImageView) view.findViewById(R.id.iv_flag);
 
-        txtCountryName.setText(itemNames[position]);
-        ivFlag.setImageResource(imgID[position]);
-        return rowView;
+            view.setTag(holder);
+        }
+        else {
+            holder = (ViewHolder) view.getTag();
+        }
+
+        holder.mTxtCountryName.setText(itemNames[position]);
+        holder.mIvFlag.setImageResource(imgID[position]);
+
+        return view;
+    }
+
+    static class ViewHolder {
+        private TextView mTxtCountryName;
+        private ImageView mIvFlag;
     }
 }

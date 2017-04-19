@@ -4,13 +4,10 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
-import android.util.Log;
 import android.util.Pair;
 
 import com.cocoahero.android.geojson.Feature;
 import com.cocoahero.android.geojson.FeatureCollection;
-import com.google.android.gms.identity.intents.model.CountrySpecification;
-import com.google.android.gms.maps.StreetViewPanorama;
 import com.google.android.gms.maps.model.LatLng;
 
 import org.json.JSONArray;
@@ -27,8 +24,6 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
-import static android.icu.lang.UCharacter.GraphemeClusterBreak.L;
 
 public class LocationSelector {
     private FeatureCollection mBoxesFeatureCollection;
@@ -209,7 +204,7 @@ public class LocationSelector {
                 String locationCountryCode = null;
 
                 if (mRandomLocation) {
-                    mCountryCode = CountryListActivity.getRandomCode();
+                    mCountryCode = CountryInfoHolder.getRandomCode();
                     Pair<LatLng, LatLng> bounds = getBounds(mCountryCode);
                     southWest = bounds.first;
                     northEast = bounds.second;
@@ -266,7 +261,7 @@ public class LocationSelector {
             mStartGameIntent.putExtra(CountryListActivity.EXTRA_LATITUDES, latitudes);
             mStartGameIntent.putExtra(CountryListActivity.EXTRA_LONGITUDES, longitudes);
 
-            mContextActivity.startActivityForResult(mStartGameIntent, CountryListActivity.REQ_STREET_ACTIVITY);
+            mContextActivity.startActivityForResult(mStartGameIntent, CountryListActivity.REQ_STREET_VIEW_ACTIVITY);
             mProgressDialog.dismiss();
         }
     }

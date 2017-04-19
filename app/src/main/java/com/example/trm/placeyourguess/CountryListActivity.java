@@ -9,18 +9,14 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Random;
-
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
-import static android.R.attr.data;
 import static io.socket.client.Socket.EVENT_CONNECT;
 
 public class CountryListActivity extends AppCompatActivity {
@@ -32,7 +28,9 @@ public class CountryListActivity extends AppCompatActivity {
     private int mNumOfRounds;
 
     private Socket mSocket;
+
     private final String EVENT_START_SINGLEPLAYER_GAME = "startSingleplayerGame";
+
     private Emitter.Listener onConnectListener = new Emitter.Listener() {
         @Override
         public void call(Object... args) {
@@ -73,234 +71,18 @@ public class CountryListActivity extends AppCompatActivity {
             Log.e("SERV", "Starting game");
             mStartGameIntent.putExtra(EXTRA_LATITUDES, latitudes);
             mStartGameIntent.putExtra(EXTRA_LONGITUDES, longitudes);
-            startActivity(mStartGameIntent);
+            startActivityForResult(mStartGameIntent, REQ_STREET_VIEW_ACTIVITY);
         }
     };
 
     private Intent mStartGameIntent;
 
-    static final int REQ_STREET_ACTIVITY = 101;
+    static final int REQ_STREET_VIEW_ACTIVITY = 101;
+    static final int REQ_SCORE_SP_ACTIVITY = 102;
 
     static final String EXTRA_LATITUDES = "LATITUDES";
     static final String EXTRA_LONGITUDES = "LONGITUDES";
-
-    static final String[] mCountryNames = {
-            "World",
-            "Albania",
-            "Argentina",
-            "Australia",
-            "Bangladesh",
-            "Belgium",
-            "Bhutan",
-            "Bolivia",
-            "Brazil",
-            "Bulgaria",
-            "Cambodia",
-            "Canada",
-            "Chile",
-            "Colombia",
-            "Croatia",
-            "Czech Republic",
-            "Denmark",
-            "Ecuador",
-            "Estonia",
-            "Finland",
-            "France",
-            "Germany",
-            "Ghana",
-            "Greece",
-            "Hungary",
-            "Iceland",
-            "Indonesia",
-            "Ireland",
-            "Israel",
-            "Italy",
-            "Japan",
-            "Kyrgyzstan",
-            "Latvia",
-            "Lesotho",
-            "Lithuania",
-            "Luxembourg",
-            "Macedonia",
-            "Malaysia",
-            "Mexico",
-            "Mongolia",
-            "Montenegro",
-            "Netherlands",
-            "New Zealand",
-            "Peru",
-            "Philippines",
-            "Poland",
-            "Portugal",
-            "Puerto Rico",
-            "Romania",
-            "Senegal",
-            "Serbia",
-            "Singapore",
-            "Slovakia",
-            "Slovenia",
-            "South Africa",
-            "South Korea",
-            "Spain",
-            "Sri Lanka",
-            "Swaziland",
-            "Sweden",
-            "Switzerland",
-            "Taiwan",
-            "Thailand",
-            "Tunisia",
-            "Turkey",
-            "Uganda",
-            "Ukraine",
-            "United Kingdom",
-            "United States",
-            "Uruguay"
-    };
-
-    static final String[] mCountryCodes = {
-            "AL",
-            "AR",
-            "AU",
-            "BD",
-            "BE",
-            "BT",
-            "BO",
-            "BR",
-            "BG",
-            "KH",
-            "CA",
-            "CL",
-            "CO",
-            "HR",
-            "CZ",
-            "DK",
-            "EC",
-            "EE",
-            "FI",
-            "FR",
-            "DE",
-            "GH",
-            "GR",
-            "HU",
-            "IS",
-            "ID",
-            "IE",
-            "IL",
-            "IT",
-            "JP",
-            "KG",
-            "LV",
-            "LS",
-            "LT",
-            "LU",
-            "MK",
-            "MY",
-            "MX",
-            "MN",
-            "ME",
-            "NL",
-            "NZ",
-            "PE",
-            "PH",
-            "PL",
-            "PT",
-            "PR",
-            "RO",
-            "SN",
-            "RS",
-            "SG",
-            "SK",
-            "SI",
-            "ZA",
-            "KR",
-            "ES",
-            "LK",
-            "SZ",
-            "SE",
-            "CH",
-            "TW",
-            "TH",
-            "TN",
-            "TR",
-            "UG",
-            "UA",
-            "GB",
-            "US",
-            "UY"
-    };
-
-    static final Integer[] mImgIDs = {
-            R.drawable.world,
-            R.drawable.albania,
-            R.drawable.argentina,
-            R.drawable.australia,
-            R.drawable.bangladesh,
-            R.drawable.belgium,
-            R.drawable.bhutan,
-            R.drawable.bolivia,
-            R.drawable.brazil,
-            R.drawable.bulgaria,
-            R.drawable.cambodja,
-            R.drawable.canada,
-            R.drawable.chile,
-            R.drawable.colombia,
-            R.drawable.croatia,
-            R.drawable.czech_republic,
-            R.drawable.denmark,
-            R.drawable.ecuador,
-            R.drawable.estonia,
-            R.drawable.finland,
-            R.drawable.france,
-            R.drawable.germany,
-            R.drawable.ghana,
-            R.drawable.greece,
-            R.drawable.hungary,
-            R.drawable.iceland,
-            R.drawable.indonesia,
-            R.drawable.ireland,
-            R.drawable.israel,
-            R.drawable.italy,
-            R.drawable.japan,
-            R.drawable.kyrgyzstan,
-            R.drawable.latvia,
-            R.drawable.lesotho,
-            R.drawable.lithuania,
-            R.drawable.luxembourg,
-            R.drawable.macedonia,
-            R.drawable.malaysia,
-            R.drawable.mexico,
-            R.drawable.mongolia,
-            R.drawable.montenegro,
-            R.drawable.netherlands,
-            R.drawable.new_zealand,
-            R.drawable.peru,
-            R.drawable.philippines,
-            R.drawable.poland,
-            R.drawable.portugal,
-            R.drawable.puerto_rico,
-            R.drawable.romania,
-            R.drawable.senegal,
-            R.drawable.serbia,
-            R.drawable.singapore,
-            R.drawable.slovakia,
-            R.drawable.slovenia,
-            R.drawable.south_africa,
-            R.drawable.south_korea,
-            R.drawable.spain,
-            R.drawable.sri_lanka,
-            R.drawable.swaziland,
-            R.drawable.sweden,
-            R.drawable.switzerland,
-            R.drawable.taiwan,
-            R.drawable.thailand,
-            R.drawable.tunisia,
-            R.drawable.turkey,
-            R.drawable.uganda,
-            R.drawable.ukraine,
-            R.drawable.uk,
-            R.drawable.usa,
-            R.drawable.uruguay
-    };
+    static final String EXTRA_SCORE = "EXTRA_SCORE";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -317,7 +99,7 @@ public class CountryListActivity extends AppCompatActivity {
 
         mIsSingleplayer = getIntent().getBooleanExtra(MainActivity.EXTRA_IS_SINGLEPLAYER, true);
 
-        CountryListAdapter adapter = new CountryListAdapter(this, mCountryNames, mImgIDs);
+        CountryListAdapter adapter = new CountryListAdapter(this, CountryInfoHolder.mCountryNames, CountryInfoHolder.mImgIDs);
         mListviewCountries = (ListView) findViewById(R.id.lv_countryList);
         mListviewCountries.setAdapter(adapter);
 
@@ -331,7 +113,7 @@ public class CountryListActivity extends AppCompatActivity {
                 String selectedCountryCode = null;
 
                 if (position != 0) { //start streetViewActivity with country code.
-                    selectedCountryCode = mCountryCodes[position - 1];
+                    selectedCountryCode = CountryInfoHolder.mCountryCodes[position - 1];
                 } else {
                     randomCountry = true;
                 }
@@ -344,9 +126,10 @@ public class CountryListActivity extends AppCompatActivity {
                     String timerLimitStr = preferences.getString(getString(R.string.settings_timerLimit), "-1");
                     int timerLimit = Integer.parseInt(timerLimitStr);
 
-                    //doesn't work yet
                     mSocket.emit("loadLocations", getSettings(randomCountry, selectedCountryCode, timerLimit));
                     Log.e("loadLocations", "host emits load locations");
+
+                    finish();
                 } else {
                     if (mIsConnected) { //SINGLEPLAYER
                         //get locations from socket
@@ -366,13 +149,30 @@ public class CountryListActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         switch (requestCode) {
-            case REQ_STREET_ACTIVITY:
+            case REQ_STREET_VIEW_ACTIVITY:
                 if (data != null) {
                     Bundle resultData = data.getExtras();
                     int score = resultData.getInt(StreetViewActivity.RESULT_KEY_SCORE);
-                    Toast.makeText(this, Integer.toString(score), Toast.LENGTH_LONG).show(); //TODO: replace with screen presenting score
+
+                    if (mIsSingleplayer) {
+                        Intent intent = new Intent(this, ScoreSPActivity.class);
+                        intent.putExtra(EXTRA_SCORE, score);
+                        startActivityForResult(intent, REQ_SCORE_SP_ACTIVITY);
+                    }
                 }
                 break;
+
+            case REQ_SCORE_SP_ACTIVITY:
+                if (data != null) {
+                    Bundle resultData = data.getExtras();
+                    boolean playAgain = resultData.getBoolean(ScoreSPActivity.RESULT_KEY_PLAY_AGAIN);
+                    if (!playAgain) {
+                        finish();
+                    }
+                }
+                break;
+
+            //case REQ_SCORE_MP_ACTIVITY - the same in MultiplayerActivity for non host players.
         }
     }
 
@@ -405,11 +205,5 @@ public class CountryListActivity extends AppCompatActivity {
         }
 
         return settings;
-    }
-
-    static String getRandomCode() {
-        Random rand = new Random(System.currentTimeMillis());
-        int codeIndex = rand.nextInt(mCountryCodes.length);
-        return mCountryCodes[codeIndex];
     }
 }

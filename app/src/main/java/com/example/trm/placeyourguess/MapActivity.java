@@ -206,7 +206,7 @@ public class MapActivity extends AppCompatActivity {
         }
     }
 
-    private void showResultOnMap() {  //TODO: add score
+    private void showResultOnMap() {
         mActualLocationMarker = mMap.addMarker(new MarkerOptions()
                 .position(mPassedLocationCoords)
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
@@ -242,9 +242,12 @@ public class MapActivity extends AppCompatActivity {
     private void showScore(float distance) {
         mLayoutScore.setVisibility(View.VISIBLE);
         mTxtRoundTimer.setVisibility(View.GONE);
-
-        mScore = PointCalculator.calculatePoints(distance);
-        String pointsLabel = getString(points) + " " + mScore; //TODO: add points
+        if (mGuessConfirmed) {
+            mScore = PointCalculator.calculatePoints(distance);
+        } else {
+            mScore = 0;
+        }
+        String pointsLabel = getString(points) + " " + mScore;
 
         mTxtPoints.setText(pointsLabel);
     }
