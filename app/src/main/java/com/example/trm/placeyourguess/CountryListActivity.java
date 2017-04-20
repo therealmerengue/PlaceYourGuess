@@ -125,15 +125,16 @@ public class CountryListActivity extends AppCompatActivity {
                 if (!mIsSingleplayer) { //MULTIPLAYER
                     String timerLimitStr = preferences.getString(getString(R.string.settings_timerLimit), "-1");
                     int timerLimit = Integer.parseInt(timerLimitStr);
+                    boolean hintsEnabled = preferences.getBoolean(getString(R.string.settings_hintsEnabled), false);
 
-                    mSocket.emit("loadLocations", getSettings(randomCountry, selectedCountryCode, timerLimit));
+                    mSocket.emit("loadLocations", getSettings(randomCountry, selectedCountryCode, timerLimit, hintsEnabled));
                     Log.e("loadLocations", "host emits load locations");
 
                     finish();
                 } else {
                     if (mIsConnected) { //SINGLEPLAYER
                         //get locations from socket
-                        mSocket.emit("loadLocations", getSettings(randomCountry, selectedCountryCode, -1));
+                        mSocket.emit("loadLocations", getSettings(randomCountry, selectedCountryCode, -1, false));
                     } else {
                         //load locations on phone
                         LocationSelector selector = new LocationSelector(CountryListActivity.this, mStartGameIntent, mNumOfRounds, randomCountry, selectedCountryCode);
@@ -185,13 +186,14 @@ public class CountryListActivity extends AppCompatActivity {
         mSocket.off("startSingleplayerGame", onStartSingleplayerGameListener);
     }
 
-    private JSONObject getSettings(boolean randomCountry, String countryCode, int timerLimit) {
+    private JSONObject getSettings(boolean randomCountry, String countryCode, int timerLimit, boolean hintsEnabled) {
         JSONObject settings = new JSONObject();
 
         try {
             settings.put("isSingleplayer", mIsSingleplayer);
             if (!mIsSingleplayer) {
                 settings.put("timerLimit", timerLimit);
+                settings.put("hintsEnabled", hintsEnabled);
             }
             settings.put("numberOfRounds", mNumOfRounds);
             settings.put("randomCountry", randomCountry);

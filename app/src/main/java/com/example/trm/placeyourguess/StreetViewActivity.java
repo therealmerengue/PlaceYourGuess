@@ -19,11 +19,12 @@ import com.google.android.gms.maps.model.StreetViewPanoramaLocation;
 public class StreetViewActivity extends AppCompatActivity {
 
     private FloatingActionButton mBtnSwitchToMap;
+    private FloatingActionButton mBtnHintStreetNames;
     private TextView mTxtTotalScore;
     private TextView mTxtRoundsLeft;
     private TextView mTxtTimer;
 
-    private static StreetViewPanorama mStreetViewPanorama;
+    private StreetViewPanorama mStreetViewPanorama;
 
     private static CountDownTimer mCountDownTimer;
 
@@ -31,6 +32,7 @@ public class StreetViewActivity extends AppCompatActivity {
     private int mRoundNumber = 1;
     private long mTimerLeft = -1;
     private int mTimerLimit = -1;
+    private boolean mHintsEnabled = false;
     private boolean mSwitchToMapOnTimerEnd = true;
     private int mNumberOfRounds;
     private double[] mLatitudes;
@@ -43,6 +45,7 @@ public class StreetViewActivity extends AppCompatActivity {
     //intent extras' tags
     static final String EXTRA_LOCATION_COORDINATES = "EXTRA_LOCATION_COORDINATES";
     static final String EXTRA_TIMER_LEFT = "EXTRA_TIMER_LEFT";
+    static final String EXTRA_HINTS_ENABLED = "EXTRA_HINTS_ENABLED";
 
     //startActivity request codes
     static final int REQ_MAP_ACTIVITY = 100;
@@ -62,6 +65,7 @@ public class StreetViewActivity extends AppCompatActivity {
     private final static String KEY_SAVED_STATE_IS_SINGLEPLAYER = "IS_SINGLEPLAYER";
     private final static String KEY_SAVED_STATE_IS_HOST = "KEY_IS_HOST";
     private final static String KEY_SAVED_STATE_TIMER_LIMIT = "KEY_TIMER_LIMIT";
+    private final static String KEY_SAVED_STATE_HINTS_ENABLED = "KEY_HINTS_ENABLED";
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -90,9 +94,13 @@ public class StreetViewActivity extends AppCompatActivity {
                 mIsHost = intent.getBooleanExtra(MultiplayerActivity.EXTRA_IS_HOST, true);
 
                 mTimerLimit = intent.getIntExtra(MultiplayerActivity.EXTRA_TIMER_LIMIT, -1);
+
+                mHintsEnabled = intent.getBooleanExtra(MultiplayerActivity.EXTRA_HINTS_ENABLED, false);
             } else {
                 String timerLimitStr = preferences.getString(getString(R.string.settings_timerLimit), "-1");
                 mTimerLimit = Integer.parseInt(timerLimitStr);
+
+                mHintsEnabled = preferences.getBoolean(getString(R.string.settings_hintsEnabled), false);
             }
 
             mLatitudes = intent.getDoubleArrayExtra(CountryListActivity.EXTRA_LATITUDES);
@@ -105,9 +113,13 @@ public class StreetViewActivity extends AppCompatActivity {
                 mIsHost = savedInstanceState.getBoolean(KEY_SAVED_STATE_IS_HOST);
 
                 mTimerLimit = savedInstanceState.getInt(KEY_SAVED_STATE_TIMER_LIMIT);
+
+                mHintsEnabled = savedInstanceState.getBoolean(KEY_SAVED_STATE_HINTS_ENABLED);
             } else {
                 String timerLimitStr = preferences.getString(getString(R.string.settings_timerLimit), "-1");
                 mTimerLimit = Integer.parseInt(timerLimitStr);
+
+                mHintsEnabled = preferences.getBoolean(getString(R.string.settings_hintsEnabled), false);
             }
 
             mLatitudes = savedInstanceState.getDoubleArray(KEY_SAVED_STATE_LATITUDES);
@@ -120,6 +132,8 @@ public class StreetViewActivity extends AppCompatActivity {
 
             setupCountDownTimer(false);
         }
+
+        setupHintsButton();
 
         updateScoreTextview();
 
@@ -135,7 +149,7 @@ public class StreetViewActivity extends AppCompatActivity {
                 public void onStreetViewPanoramaReady(final StreetViewPanorama panorama) {
                     mStreetViewPanorama = panorama;
 
-                    mStreetViewPanorama.setStreetNamesEnabled(Settings.isStreetNamesEnabled());
+                    mStreetViewPanorama.setStreetNamesEnabled(false);
                     mStreetViewPanorama.setUserNavigationEnabled(true);
                     mStreetViewPanorama.setZoomGesturesEnabled(true);
                     mStreetViewPanorama.setPanningGesturesEnabled(true);
@@ -209,10 +223,11 @@ public class StreetViewActivity extends AppCompatActivity {
 
         //is singleplayer
         outState.putBoolean(KEY_SAVED_STATE_IS_SINGLEPLAYER, mIsSingleplayer);
-        //if multiplayer - is host
+        //if multiplayer
         if (!mIsSingleplayer) {
             outState.putBoolean(KEY_SAVED_STATE_IS_HOST, mIsHost);
             outState.putInt(KEY_SAVED_STATE_TIMER_LIMIT, mTimerLimit);
+            outState.putBoolean(KEY_SAVED_STATE_HINTS_ENABLED, mHintsEnabled);
         }
 
         //current timer value
@@ -288,9 +303,30 @@ public class StreetViewActivity extends AppCompatActivity {
         Intent intent = new Intent(StreetViewActivity.this, MapActivity.class);
         LatLng panoramaLocation = mStreetViewPanorama.getLocation().position;
         intent.putExtra(EXTRA_LOCATION_COORDINATES, new double[] {panoramaLocation.latitude, panoramaLocation.longitude});
+
         if (mTimerLeft != -1) {
             intent.putExtra(EXTRA_TIMER_LEFT, mTimerLeft);
         }
+
+        if (!mIsSingleplayer) {
+            intent.putExtra(EXTRA_HINTS_ENABLED, mHintsEnabled);
+        }
+
         startActivityForResult(intent, REQ_MAP_ACTIVITY);
+    }
+
+    private void setupHintsButton() {
+        if (mHintsEnabled) {
+            mBtnHintStreetNames = (FloatingActionButton) findViewById(R.id.btn_hintStreetNames);
+            mBtnHintStreetNames.setVisibility(View.VISIBLE);
+            mBtnHintStreetNames.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (mStreetViewPanorama != null) {
+                        mStreetViewPanorama.setStreetNamesEnabled(!mStreetViewPanorama.isStreetNamesEnabled());
+                    }
+                }
+            });
+        }
     }
 }

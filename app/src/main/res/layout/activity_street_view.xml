@@ -22,14 +22,30 @@
         android:textStyle="bold"
         android:layout_margin="10dp"/>
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/btn_switchToMapView"
+    <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|right"
         android:layout_margin="16dp"
-        android:src="@drawable/map"
-        app:backgroundTint="@color/colorPrimaryDark" />
+        android:layout_gravity="right|bottom">
+
+        <android.support.design.widget.FloatingActionButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/btn_hintStreetNames"
+            android:src="@drawable/hint_roadnames"
+            app:backgroundTint="@color/colorPrimaryDark"
+            android:layout_marginRight="25dp"
+            android:visibility="gone"/>
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/btn_switchToMapView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/map"
+            android:layout_toRightOf="@id/btn_hintStreetNames"
+            app:backgroundTint="@color/colorPrimaryDark" />
+
+    </RelativeLayout>
 
     <LinearLayout
         android:layout_width="match_parent"

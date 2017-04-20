@@ -11,7 +11,7 @@
         android:id="@+id/txt_playerName"
         android:layout_gravity="left"
         android:fontFamily="sans-serif-smallcaps"
-        android:textSize="15sp"/>
+        android:textSize="22sp"/>
 
     <Space
         android:layout_width="0dp"
@@ -24,6 +24,6 @@
         android:id="@+id/txt_playerScore"
         android:layout_gravity="right"
         android:fontFamily="sans-serif-smallcaps"
-        android:textSize="15sp"/>
+        android:textSize="22sp"/>
 
 </LinearLayout>

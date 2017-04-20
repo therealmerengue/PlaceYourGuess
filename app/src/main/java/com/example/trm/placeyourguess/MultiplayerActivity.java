@@ -89,9 +89,11 @@ public class MultiplayerActivity extends AppCompatActivity {
             JSONObject settings = (JSONObject) args[0];
             JSONArray locations = null;
             int timerLimit = -1;
+            boolean hintsEnabled = false;
             try {
                 locations = settings.getJSONArray("locations");
                 timerLimit = settings.getInt("timerLimit");
+                hintsEnabled = settings.getBoolean("hintsEnabled");
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -114,6 +116,7 @@ public class MultiplayerActivity extends AppCompatActivity {
 
             Intent intent = new Intent(MultiplayerActivity.this, StreetViewActivity.class);
             intent.putExtra(EXTRA_TIMER_LIMIT, timerLimit);
+            intent.putExtra(EXTRA_HINTS_ENABLED, hintsEnabled);
             intent.putExtra(EXTRA_IS_HOST, mIsHost);
             intent.putExtra(MainActivity.EXTRA_IS_SINGLEPLAYER, false);
             intent.putExtra(EXTRA_LATITUDES, latitudes);
@@ -149,11 +152,12 @@ public class MultiplayerActivity extends AppCompatActivity {
     static final int REQ_STREET_VIEW_ACTIVITY = 101;
 
     //intent extras' tags
-    static final String EXTRA_IS_HOST = "IS_HOST";
+    static final String EXTRA_IS_HOST = "EXTRA_IS_HOST";
     static final String EXTRA_TIMER_LIMIT = "EXTRA_TIMER_LIMIT";
     static final String EXTRA_FINAL_SCORE = "EXTRA_FINAL_SCORE";
     static final String EXTRA_ROOM_NAME = "EXTRA_ROOM_NAME";
     static final String EXTRA_NICKNAME = "EXTRA_NICKNAME";
+    static final String EXTRA_HINTS_ENABLED = "EXTRA_HINTS_ENABLED";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

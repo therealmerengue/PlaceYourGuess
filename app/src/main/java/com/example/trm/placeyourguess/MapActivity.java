@@ -1,6 +1,8 @@
 package com.example.trm.placeyourguess;
 
+import android.content.SharedPreferences;
 import android.os.CountDownTimer;
+import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.content.Intent;
 import android.graphics.Color;
@@ -12,6 +14,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -23,6 +26,9 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+
+import java.text.DecimalFormat;
+import java.util.Map;
 
 import static com.example.trm.placeyourguess.R.string.points;
 
@@ -36,6 +42,7 @@ public class MapActivity extends AppCompatActivity {
 
     private Button mBtnConfirm;
     private FloatingActionButton mBtnSwitchToStreetView;
+    private FloatingActionButton mBtnHintDistance;
     private TextView mTxtRoundTimer;
 
     //score layout
@@ -47,6 +54,7 @@ public class MapActivity extends AppCompatActivity {
     private long mTimerValue;
     private boolean mGuessMade = false;
     private boolean mGuessConfirmed = false;
+    private boolean mHintsEnabled = false;
     private int mScore;
 
     //activity result variable keys
@@ -56,6 +64,7 @@ public class MapActivity extends AppCompatActivity {
     private final static String KEY_SAVED_STATE_TIMER_VALUE = "TIMER";
     private final static String KEY_SAVED_STATE_PASSED_LAT = "PASSED_LAT";
     private final static String KEY_SAVED_STATE_PASSED_LNG = "PASSED_LNG";
+    private final static String KEY_SAVED_STATE_HINTS_ENABLED = "HINTS_ENABLED";
 
     private float mGuessOffset;
     private long mPassedTimeLeft;
@@ -69,9 +78,18 @@ public class MapActivity extends AppCompatActivity {
         double[] passedCoords = new double[2];
         if (savedInstanceState == null) {
             passedCoords = intent.getDoubleArrayExtra(StreetViewActivity.EXTRA_LOCATION_COORDINATES);
+
+            if (intent.hasExtra(MultiplayerActivity.EXTRA_HINTS_ENABLED)) { //for multiplayer
+                mHintsEnabled = intent.getBooleanExtra(MultiplayerActivity.EXTRA_HINTS_ENABLED, false);
+            } else { //for singleplayer
+                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+                mHintsEnabled = preferences.getBoolean(getString(R.string.settings_hintsEnabled), false);
+            }
         } else {
             passedCoords[0] = savedInstanceState.getDouble(KEY_SAVED_STATE_PASSED_LAT);
             passedCoords[1] = savedInstanceState.getDouble(KEY_SAVED_STATE_PASSED_LNG);
+
+            mHintsEnabled = savedInstanceState.getBoolean(KEY_SAVED_STATE_HINTS_ENABLED);
         }
         mPassedLocationCoords = new LatLng(passedCoords[0], passedCoords[1]);
 
@@ -83,23 +101,33 @@ public class MapActivity extends AppCompatActivity {
             }
         });
 
+        //DISTANCE HINT
+        if (mHintsEnabled) {
+            mBtnHintDistance = (FloatingActionButton) findViewById(R.id.btn_hintDistance);
+            mBtnHintDistance.setVisibility(View.VISIBLE);
+            mBtnHintDistance.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (mGuessedLocationMarker == null) {
+                        Toast.makeText(MapActivity.this, "Place your guess to use this hint.", Toast.LENGTH_SHORT).show();
+                    } else {
+                        float distance = measureDistance(mGuessedLocationMarker.getPosition(), mPassedLocationCoords) / 1000;
+                        DecimalFormat df = new DecimalFormat("###.##");
+                        Toast.makeText(MapActivity.this, "Your guess is " + df.format(distance) + " km off", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
+
         mBtnConfirm = (Button) findViewById(R.id.btn_confirm);
         mBtnConfirm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mGuessMade = true;
                 mGuessConfirmed = true;
+
                 LatLng markerCoords = mGuessedLocationMarker.getPosition();
-
-                Location markerLocation = new Location("");
-                markerLocation.setLatitude(markerCoords.latitude);
-                markerLocation.setLongitude(markerCoords.longitude);
-
-                Location passedLocation = new Location("");
-                passedLocation.setLatitude(mPassedLocationCoords.latitude);
-                passedLocation.setLongitude(mPassedLocationCoords.longitude);
-
-                mGuessOffset = markerLocation.distanceTo(passedLocation);
+                mGuessOffset = measureDistance(markerCoords, mPassedLocationCoords);
 
                 PolylineOptions line = new PolylineOptions()
                         .add(mPassedLocationCoords, markerCoords)
@@ -195,6 +223,8 @@ public class MapActivity extends AppCompatActivity {
 
         outState.putDouble(KEY_SAVED_STATE_PASSED_LAT, mPassedLocationCoords.latitude);
         outState.putDouble(KEY_SAVED_STATE_PASSED_LNG, mPassedLocationCoords.longitude);
+
+        outState.putBoolean(KEY_SAVED_STATE_HINTS_ENABLED, mHintsEnabled);
     }
 
     @Override
@@ -213,10 +243,12 @@ public class MapActivity extends AppCompatActivity {
 
         if (mGuessConfirmed) {
             String distanceSnippet;
+            DecimalFormat df = new DecimalFormat("###.##");
+
             if (mGuessOffset < 1000) {
-                distanceSnippet = Float.toString(mGuessOffset) + " m";
+                distanceSnippet = df.format(mGuessOffset) + " m";
             } else {
-                distanceSnippet = Float.toString(mGuessOffset / 1000) + " km";
+                distanceSnippet = df.format(mGuessOffset / 1000) + " km";
             }
 
             mActualLocationMarker.setTitle("Distance");
@@ -280,5 +312,17 @@ public class MapActivity extends AppCompatActivity {
                 }.start();
             }
         }
+    }
+
+    private float measureDistance(LatLng latLng1, LatLng latLng2) {
+        Location location1 = new Location("");
+        location1.setLatitude(latLng1.latitude);
+        location1.setLongitude(latLng1.longitude);
+
+        Location location2 = new Location("");
+        location2.setLatitude(latLng2.latitude);
+        location2.setLongitude(latLng2.longitude);
+
+        return location1.distanceTo(location2);
     }
 }

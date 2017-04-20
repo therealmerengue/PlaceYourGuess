@@ -13,10 +13,9 @@ import org.json.JSONObject;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
-import static com.example.trm.placeyourguess.R.string.score;
-import static io.socket.client.Socket.EVENT_CONNECT;
-
 public class ScoreMPActivity extends AppCompatActivity {
+
+    private String mNickname;
 
     private Socket mSocket;
 
@@ -48,9 +47,10 @@ public class ScoreMPActivity extends AppCompatActivity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    ScoreListAdapter adapter = new ScoreListAdapter(ScoreMPActivity.this, nicknames, scores);
+                    ScoreListAdapter adapter = new ScoreListAdapter(ScoreMPActivity.this, mNickname, nicknames, scores);
                     ListView scoresList = (ListView) findViewById(R.id.lv_scoreList);
                     scoresList.setAdapter(adapter);
+                    scoresList.setClickable(false);
                 }
             });
         }
@@ -65,13 +65,13 @@ public class ScoreMPActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         int score = intent.getIntExtra(MultiplayerActivity.EXTRA_FINAL_SCORE, 0);
-        String nickname = intent.getStringExtra(MultiplayerActivity.EXTRA_NICKNAME);
+        mNickname = intent.getStringExtra(MultiplayerActivity.EXTRA_NICKNAME);
         String roomName = intent.getStringExtra(MultiplayerActivity.EXTRA_ROOM_NAME);
 
         JSONObject scoreInfo = new JSONObject();
         try {
             scoreInfo.put("score", score);
-            scoreInfo.put("nickname", nickname);
+            scoreInfo.put("nickname", mNickname);
             scoreInfo.put("roomName", roomName);
         } catch (JSONException e) {
             e.printStackTrace();
