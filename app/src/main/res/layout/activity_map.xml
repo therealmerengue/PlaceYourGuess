@@ -59,14 +59,30 @@
         android:textSize="35sp"
         android:fontFamily="sans-serif-smallcaps"/>
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/btn_switchToStreetView"
+    <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|right"
-        android:layout_margin="16dp"
-        android:src="@drawable/streetview"
-        app:backgroundTint="@color/colorPrimaryDark" />
+        android:layout_margin="16dp">
+
+        <android.support.design.widget.FloatingActionButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/btn_hintDistance"
+            android:src="@drawable/hint_distance"
+            app:backgroundTint="@color/colorPrimaryDark"
+            android:layout_marginRight="25dp"
+            android:visibility="gone"/>
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/btn_switchToStreetView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/streetview"
+            app:backgroundTint="@color/colorPrimaryDark"
+            android:layout_toRightOf="@id/btn_hintDistance"/>
+
+    </RelativeLayout>
 
     <Button
         android:id="@+id/btn_confirm"
