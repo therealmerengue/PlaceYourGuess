@@ -151,6 +151,9 @@ public class MultiplayerActivity extends AppCompatActivity {
     //intent extras' tags
     static final String EXTRA_IS_HOST = "IS_HOST";
     static final String EXTRA_TIMER_LIMIT = "EXTRA_TIMER_LIMIT";
+    static final String EXTRA_FINAL_SCORE = "EXTRA_FINAL_SCORE";
+    static final String EXTRA_ROOM_NAME = "EXTRA_ROOM_NAME";
+    static final String EXTRA_NICKNAME = "EXTRA_NICKNAME";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -297,7 +300,14 @@ public class MultiplayerActivity extends AppCompatActivity {
                 if (data != null) { //TODO: start ScoreMPActivity, emit loadScores event (maybe even before finishing StreetViewActivity)
                     Bundle resultData = data.getExtras();
                     int score = resultData.getInt(StreetViewActivity.RESULT_KEY_SCORE);
+
                     Toast.makeText(this, Integer.toString(score), Toast.LENGTH_LONG).show();
+
+                    Intent intent = new Intent(this, ScoreMPActivity.class);
+                    intent.putExtra(EXTRA_FINAL_SCORE, score);
+                    intent.putExtra(EXTRA_ROOM_NAME, mJoinedChannelName);
+                    intent.putExtra(EXTRA_NICKNAME, mNickname);
+                    startActivity(intent);
                 }
                 break;
         }

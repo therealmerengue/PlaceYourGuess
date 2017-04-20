@@ -15,7 +15,7 @@ public class CountryListAdapter extends ArrayAdapter<String> {
     private final Integer[] imgID;
 
     public CountryListAdapter(Activity context, String[] itemNames, Integer[] imgIDs) {
-        super(context, R.layout.list_item, itemNames);
+        super(context, R.layout.country_list_item, itemNames);
 
         this.context = context;
         this.itemNames = itemNames;
@@ -28,7 +28,7 @@ public class CountryListAdapter extends ArrayAdapter<String> {
 
         if (view == null) {
             LayoutInflater inflater = context.getLayoutInflater();
-            view = inflater.inflate(R.layout.list_item, null, true);
+            view = inflater.inflate(R.layout.country_list_item, null, true);
             holder = new ViewHolder();
             holder.mTxtCountryName = (TextView) view.findViewById(R.id.txt_countryName);
             holder.mIvFlag = (ImageView) view.findViewById(R.id.iv_flag);

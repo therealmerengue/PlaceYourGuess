@@ -39,7 +39,8 @@
             android:name=".MultiplayerActivity"
             android:label="Multiplayer"
             android:theme="@style/AppThemeActionBar" />
-        <activity android:name=".ScoreSPActivity"></activity>
+        <activity android:name=".ScoreSPActivity" />
+        <activity android:name=".ScoreMPActivity"></activity>
     </application>
 
 </manifest>

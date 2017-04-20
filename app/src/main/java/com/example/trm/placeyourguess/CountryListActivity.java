@@ -171,8 +171,6 @@ public class CountryListActivity extends AppCompatActivity {
                     }
                 }
                 break;
-
-            //case REQ_SCORE_MP_ACTIVITY - the same in MultiplayerActivity for non host players.
         }
     }
 
