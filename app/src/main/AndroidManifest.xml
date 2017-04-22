@@ -32,7 +32,7 @@
             android:label="Settings"
             android:theme="@style/AppThemeActionBar" />
         <activity
-            android:name=".CountryListActivity"
+            android:name=".LocationListActivity"
             android:label="Choose location"
             android:theme="@style/AppThemeActionBar" />
         <activity
@@ -40,7 +40,8 @@
             android:label="Multiplayer"
             android:theme="@style/AppThemeActionBar" />
         <activity android:name=".ScoreSPActivity" />
-        <activity android:name=".ScoreMPActivity"></activity>
+        <activity android:name=".ScoreMPActivity" />
+        <activity android:name=".CustomLocationActivity"></activity>
     </application>
 
 </manifest>

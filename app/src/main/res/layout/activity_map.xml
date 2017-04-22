@@ -92,7 +92,7 @@
         android:layout_margin="16dp"
         android:background="@color/colorPrimaryDark"
         android:enabled="false"
-        android:text="OK"
+        android:text="@string/ok"
         android:textColor="#fff"
         android:textSize="18sp" />
 

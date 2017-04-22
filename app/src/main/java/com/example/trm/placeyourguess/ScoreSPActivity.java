@@ -17,7 +17,7 @@ public class ScoreSPActivity extends AppCompatActivity {
         setContentView(R.layout.activity_score_sp);
 
         Intent intent = getIntent();
-        int score = intent.getIntExtra(CountryListActivity.EXTRA_SCORE, 0);
+        int score = intent.getIntExtra(LocationListActivity.EXTRA_SCORE, 0);
 
         TextView mTxtScore = (TextView) findViewById(R.id.txt_finalScore);
         String scoreLabel = getString(R.string.final_score) + " " + Integer.toString(score);

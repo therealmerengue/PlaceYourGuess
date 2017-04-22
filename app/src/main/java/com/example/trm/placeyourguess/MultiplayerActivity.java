@@ -1,8 +1,6 @@
 package com.example.trm.placeyourguess;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -17,13 +15,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.net.URISyntaxException;
-
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
-import static com.example.trm.placeyourguess.CountryListActivity.EXTRA_LATITUDES;
-import static com.example.trm.placeyourguess.CountryListActivity.EXTRA_LONGITUDES;
+import static com.example.trm.placeyourguess.LocationListActivity.EXTRA_LATITUDES;
+import static com.example.trm.placeyourguess.LocationListActivity.EXTRA_LONGITUDES;
 
 public class MultiplayerActivity extends AppCompatActivity {
 
@@ -252,7 +248,7 @@ public class MultiplayerActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (mPlayersInRoom > 1) {
-                    Intent intent = new Intent(MultiplayerActivity.this, CountryListActivity.class);
+                    Intent intent = new Intent(MultiplayerActivity.this, LocationListActivity.class);
                     intent.putExtra(MainActivity.EXTRA_IS_SINGLEPLAYER, false);
                     intent.putExtra(EXTRA_IS_HOST, mIsHost);
                     startActivity(intent);

@@ -30,7 +30,7 @@ public class LocationSelector {
     private JSONArray mCountriesInfo;
     private ProgressDialog mProgressDialog;
 
-    private CountryListActivity mContextActivity;
+    private LocationListActivity mContextActivity;
     private String mCountryCode;
     private int mNumOfLocations;
     private boolean mRandomLocation;
@@ -41,7 +41,7 @@ public class LocationSelector {
 
     public LocationSelector(Context context, Intent startGameIntent, int numberOfLocations, boolean randomLocation, String countryCode) {
         mNumOfLocations = numberOfLocations;
-        mContextActivity = (CountryListActivity) context;
+        mContextActivity = (LocationListActivity) context;
         mRandomLocation = randomLocation;
         mCountryCode = countryCode;
         mStartGameIntent = startGameIntent;
@@ -58,6 +58,10 @@ public class LocationSelector {
         } else {
             new ImageChecker().execute();
         }
+    }
+
+    public void selectLocations(Pair<LatLng, LatLng> bounds) {
+        new ImageChecker().execute(bounds.first, bounds.second);
     }
 
     private Pair<LatLng, LatLng> getBounds(String countryCode) {
@@ -204,14 +208,13 @@ public class LocationSelector {
                 String locationCountryCode = null;
 
                 if (mRandomLocation) {
-                    mCountryCode = CountryInfoHolder.getRandomCode();
+                    mCountryCode = LocationInfoHolder.getRandomCode();
                     Pair<LatLng, LatLng> bounds = getBounds(mCountryCode);
                     southWest = bounds.first;
                     northEast = bounds.second;
                 }
 
-                while (response == null || response.length() == 0
-                        || locationCountryCode == null || !locationCountryCode.equals(mCountryCode)) {
+                while (response == null || response.length() == 0 || locationCountryCode == null) {
                     LatLng randomLocation = getRandomLatLng(new Pair<>(southWest, northEast));
                     String url = URL_BEGINNING + randomLocation.latitude + "," + randomLocation.longitude + URL_END;
                     response = readJsonFromUrl(url);
@@ -224,6 +227,10 @@ public class LocationSelector {
                         locationCountryCode = getCountryCode(locationCountryName);
                     } catch (JSONException e) {
                         e.printStackTrace();
+                    }
+
+                    if (!mRandomLocation && !mCountryCode.equals("custom") && !mCountryCode.equals(locationCountryCode)) {
+                        response = null;
                     }
                 }
 
@@ -258,10 +265,10 @@ public class LocationSelector {
                 longitudes[i] = result.get(i).longitude;
             }
 
-            mStartGameIntent.putExtra(CountryListActivity.EXTRA_LATITUDES, latitudes);
-            mStartGameIntent.putExtra(CountryListActivity.EXTRA_LONGITUDES, longitudes);
+            mStartGameIntent.putExtra(LocationListActivity.EXTRA_LATITUDES, latitudes);
+            mStartGameIntent.putExtra(LocationListActivity.EXTRA_LONGITUDES, longitudes);
 
-            mContextActivity.startActivityForResult(mStartGameIntent, CountryListActivity.REQ_STREET_VIEW_ACTIVITY);
+            mContextActivity.startActivityForResult(mStartGameIntent, LocationListActivity.REQ_STREET_VIEW_ACTIVITY);
             mProgressDialog.dismiss();
         }
     }

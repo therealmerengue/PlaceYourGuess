@@ -6,9 +6,12 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.util.Pair;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+
+import com.google.android.gms.maps.model.LatLng;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -19,7 +22,7 @@ import io.socket.emitter.Emitter;
 
 import static io.socket.client.Socket.EVENT_CONNECT;
 
-public class CountryListActivity extends AppCompatActivity {
+public class LocationListActivity extends AppCompatActivity {
 
     private ListView mListviewCountries;
 
@@ -79,6 +82,7 @@ public class CountryListActivity extends AppCompatActivity {
 
     static final int REQ_STREET_VIEW_ACTIVITY = 101;
     static final int REQ_SCORE_SP_ACTIVITY = 102;
+    static final int REQ_CUSTOM_LOCATION_ACTIVITY = 103;
 
     static final String EXTRA_LATITUDES = "LATITUDES";
     static final String EXTRA_LONGITUDES = "LONGITUDES";
@@ -99,7 +103,7 @@ public class CountryListActivity extends AppCompatActivity {
 
         mIsSingleplayer = getIntent().getBooleanExtra(MainActivity.EXTRA_IS_SINGLEPLAYER, true);
 
-        CountryListAdapter adapter = new CountryListAdapter(this, CountryInfoHolder.mCountryNames, CountryInfoHolder.mImgIDs);
+        LocationListAdapter adapter = new LocationListAdapter(this, LocationInfoHolder.mCountryNames, LocationInfoHolder.mImgIDs);
         mListviewCountries = (ListView) findViewById(R.id.lv_countryList);
         mListviewCountries.setAdapter(adapter);
 
@@ -108,36 +112,40 @@ public class CountryListActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 boolean randomCountry = false;
 
-                mStartGameIntent = new Intent(CountryListActivity.this, StreetViewActivity.class);
+                mStartGameIntent = new Intent(LocationListActivity.this, StreetViewActivity.class);
                 mStartGameIntent.putExtra(MainActivity.EXTRA_IS_SINGLEPLAYER, mIsSingleplayer);
                 String selectedCountryCode = null;
 
-                if (position != 0) { //start streetViewActivity with country code.
-                    selectedCountryCode = CountryInfoHolder.mCountryCodes[position - 1];
-                } else {
-                    randomCountry = true;
-                }
-
-                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(CountryListActivity.this);
+                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(LocationListActivity.this);
                 String numberOfRoundsStr = preferences.getString(getString(R.string.settings_numOfRounds), "5");
                 mNumOfRounds = Integer.parseInt(numberOfRoundsStr);
+
+                if (position == 0) {
+                    randomCountry = true;
+                } else if (position == 1) { //TODO: start pick custom location activity or smth
+                    Intent customLocationIntent = new Intent(LocationListActivity.this, CustomLocationActivity.class);
+                    startActivityForResult(customLocationIntent, REQ_CUSTOM_LOCATION_ACTIVITY);
+                    return; //return at the end? <- yes
+                } else  { //start streetViewActivity with country code.
+                    selectedCountryCode = LocationInfoHolder.mCountryCodes[position - 2];
+                }
 
                 if (!mIsSingleplayer) { //MULTIPLAYER
                     String timerLimitStr = preferences.getString(getString(R.string.settings_timerLimit), "-1");
                     int timerLimit = Integer.parseInt(timerLimitStr);
                     boolean hintsEnabled = preferences.getBoolean(getString(R.string.settings_hintsEnabled), false);
 
-                    mSocket.emit("loadLocations", getSettings(randomCountry, selectedCountryCode, timerLimit, hintsEnabled));
+                    mSocket.emit("loadLocations", getSettings(randomCountry, selectedCountryCode, timerLimit, hintsEnabled, null));
                     Log.e("loadLocations", "host emits load locations");
 
                     finish();
                 } else {
                     if (mIsConnected) { //SINGLEPLAYER
                         //get locations from socket
-                        mSocket.emit("loadLocations", getSettings(randomCountry, selectedCountryCode, -1, false));
+                        mSocket.emit("loadLocations", getSettings(randomCountry, selectedCountryCode, -1, false, null));
                     } else {
                         //load locations on phone
-                        LocationSelector selector = new LocationSelector(CountryListActivity.this, mStartGameIntent, mNumOfRounds, randomCountry, selectedCountryCode);
+                        LocationSelector selector = new LocationSelector(LocationListActivity.this, mStartGameIntent, mNumOfRounds, randomCountry, selectedCountryCode);
                         selector.selectLocations();
                     }
                 }
@@ -172,6 +180,41 @@ public class CountryListActivity extends AppCompatActivity {
                     }
                 }
                 break;
+
+            case REQ_CUSTOM_LOCATION_ACTIVITY:
+                if (data != null) {
+                    Bundle resultData = data.getExtras();
+                    double[] latitudeBounds = resultData.getDoubleArray(CustomLocationActivity.RESULT_KEY_LATITUDE_BOUNDS);
+                    double[] longitudeBounds = resultData.getDoubleArray(CustomLocationActivity.RESULT_KEY_LONGITUDE_BOUNDS);
+
+                    Pair<LatLng, LatLng> bounds = new Pair<>(new LatLng(latitudeBounds[0], longitudeBounds[0]),
+                            new LatLng(latitudeBounds[1], longitudeBounds[1]));
+
+                    final String countryCode = "custom";
+
+                    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(LocationListActivity.this);
+
+                    if (!mIsSingleplayer) { //MULTIPLAYER
+                        String timerLimitStr = preferences.getString(getString(R.string.settings_timerLimit), "-1");
+                        int timerLimit = Integer.parseInt(timerLimitStr);
+                        boolean hintsEnabled = preferences.getBoolean(getString(R.string.settings_hintsEnabled), false);
+
+                        mSocket.emit("loadLocations", getSettings(false, countryCode, timerLimit, hintsEnabled, bounds));
+                        Log.e("loadLocations", "host emits load locations");
+
+                        finish();
+                    } else {
+                        if (mIsConnected) { //SINGLEPLAYER
+                            //get locations from socket
+                            mSocket.emit("loadLocations", getSettings(false, countryCode, -1, false, bounds));
+                        } else {
+                            //load locations on phone
+                            LocationSelector selector = new LocationSelector(LocationListActivity.this, mStartGameIntent, mNumOfRounds, false, countryCode);
+                            selector.selectLocations(bounds);
+                        }
+                    }
+                }
+                break;
         }
     }
 
@@ -186,7 +229,7 @@ public class CountryListActivity extends AppCompatActivity {
         mSocket.off("startSingleplayerGame", onStartSingleplayerGameListener);
     }
 
-    private JSONObject getSettings(boolean randomCountry, String countryCode, int timerLimit, boolean hintsEnabled) {
+    private JSONObject getSettings(boolean randomCountry, String countryCode, int timerLimit, boolean hintsEnabled, Pair<LatLng, LatLng> bounds) {
         JSONObject settings = new JSONObject();
 
         try {
@@ -197,8 +240,19 @@ public class CountryListActivity extends AppCompatActivity {
             }
             settings.put("numberOfRounds", mNumOfRounds);
             settings.put("randomCountry", randomCountry);
+
             if (!randomCountry) {
                 settings.put("countryCode", countryCode);
+
+                if (countryCode.equals("custom")) {
+                    LatLng minimums = bounds.first;
+                    LatLng maximums = bounds.second;
+
+                    settings.put("minLat", minimums.latitude);
+                    settings.put("maxLat", maximums.latitude);
+                    settings.put("minLng", minimums.longitude);
+                    settings.put("maxLng", maximums.longitude);
+                }
             }
         } catch (JSONException e) {
             e.printStackTrace();

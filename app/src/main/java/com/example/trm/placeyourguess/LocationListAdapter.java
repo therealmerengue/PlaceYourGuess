@@ -9,12 +9,12 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-public class CountryListAdapter extends ArrayAdapter<String> {
+public class LocationListAdapter extends ArrayAdapter<String> {
     private final Activity context;
     private final String[] itemNames;
     private final Integer[] imgID;
 
-    public CountryListAdapter(Activity context, String[] itemNames, Integer[] imgIDs) {
+    public LocationListAdapter(Activity context, String[] itemNames, Integer[] imgIDs) {
         super(context, R.layout.country_list_item, itemNames);
 
         this.context = context;

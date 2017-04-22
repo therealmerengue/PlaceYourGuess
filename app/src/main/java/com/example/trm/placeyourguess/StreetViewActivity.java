@@ -103,8 +103,8 @@ public class StreetViewActivity extends AppCompatActivity {
                 mHintsEnabled = preferences.getBoolean(getString(R.string.settings_hintsEnabled), false);
             }
 
-            mLatitudes = intent.getDoubleArrayExtra(CountryListActivity.EXTRA_LATITUDES);
-            mLongitudes = intent.getDoubleArrayExtra(CountryListActivity.EXTRA_LONGITUDES);
+            mLatitudes = intent.getDoubleArrayExtra(LocationListActivity.EXTRA_LATITUDES);
+            mLongitudes = intent.getDoubleArrayExtra(LocationListActivity.EXTRA_LONGITUDES);
 
             setupCountDownTimer(true);
         } else {

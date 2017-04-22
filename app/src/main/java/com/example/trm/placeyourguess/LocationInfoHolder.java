@@ -2,10 +2,11 @@ package com.example.trm.placeyourguess;
 
 import java.util.Random;
 
-public class CountryInfoHolder {
+public class LocationInfoHolder {
 
     static final String[] mCountryNames = {
             "World",
+            "Custom",
             "Albania",
             "Argentina",
             "Australia",
@@ -149,6 +150,7 @@ public class CountryInfoHolder {
     };
     static final Integer[] mImgIDs = {
             R.drawable.world,
+            R.drawable.question_mark,
             R.drawable.albania,
             R.drawable.argentina,
             R.drawable.australia,

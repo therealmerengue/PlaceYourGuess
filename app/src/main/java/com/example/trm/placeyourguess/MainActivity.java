@@ -32,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (isOnline()) {
-                    Intent intent = new Intent(MainActivity.this, CountryListActivity.class);
+                    Intent intent = new Intent(MainActivity.this, LocationListActivity.class);
                     intent.putExtra(EXTRA_IS_SINGLEPLAYER, true);
                     startActivity(intent);
                 } else {
