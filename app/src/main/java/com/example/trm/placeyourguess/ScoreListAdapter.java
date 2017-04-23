@@ -49,6 +49,7 @@ public class ScoreListAdapter extends ArrayAdapter<String> {
         holder.mTxtPlayerName.setText(names[position]);
         if (names[position].equals(boldName)) {
             holder.mTxtPlayerName.setTypeface(holder.mTxtPlayerName.getTypeface(), Typeface.BOLD);
+            holder.mTxtPlayerScore.setTypeface(holder.mTxtPlayerScore.getTypeface(), Typeface.BOLD);
         }
         holder.mTxtPlayerScore.setText(Integer.toString(scores[position]));
 

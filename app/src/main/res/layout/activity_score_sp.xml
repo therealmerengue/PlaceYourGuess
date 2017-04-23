@@ -35,7 +35,8 @@
             android:fontFamily="sans-serif-smallcaps"
             android:layout_gravity="center"
             android:textAlignment="center"
-            android:id="@+id/txt_finalScore"/>
+            android:id="@+id/txt_finalScore"
+            android:textColor="#fff"/>
 
         <Space
             android:layout_width="match_parent"

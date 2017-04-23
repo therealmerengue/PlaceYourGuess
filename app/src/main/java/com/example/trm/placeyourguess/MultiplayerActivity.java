@@ -1,6 +1,8 @@
 package com.example.trm.placeyourguess;
 
+import android.app.Service;
 import android.content.Intent;
+import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -8,6 +10,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -18,12 +21,13 @@ import org.json.JSONObject;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
+import static android.app.Service.START_NOT_STICKY;
 import static com.example.trm.placeyourguess.LocationListActivity.EXTRA_LATITUDES;
 import static com.example.trm.placeyourguess.LocationListActivity.EXTRA_LONGITUDES;
 
 public class MultiplayerActivity extends AppCompatActivity {
 
-    private Socket mSocket;
+    private static Socket mSocket;
 
     private final String EVENT_NOMINATE_HOST = "nominateHost";
     private final String EVENT_START_MULTIPLAYER_GAME = "startMultiplayerGame";
@@ -125,8 +129,27 @@ public class MultiplayerActivity extends AppCompatActivity {
         @Override
         public void call(Object... args) {
             JSONArray playersList = (JSONArray) args[0];
-            updateRoomList(playerListToString(playersList));
+
             mPlayersInRoom = playersList.length();
+
+            final String[] players = new String[mPlayersInRoom];
+            for (int i = 0; i < mPlayersInRoom; i++) {
+                try {
+                    players[i] = playersList.getString(i);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    String channelStateLabel = "Players in room " + mJoinedChannelName + ":";
+                    mTxtChannelState.setText(channelStateLabel);
+                    mPlayersListAdapter = new PlayerListAdapter(MultiplayerActivity.this, mNickname, players);
+                    mLvPlayers.setAdapter(mPlayersListAdapter);
+                    mLvPlayers.setClickable(false);
+                }
+            });
         }
     };
 
@@ -138,9 +161,12 @@ public class MultiplayerActivity extends AppCompatActivity {
     private Button mBtnStartGame;
     private Button mBtnSettings;
     private LinearLayout mLayoutHostControls;
+    private ListView mLvPlayers;
 
-    private String mJoinedChannelName;
-    private String mNickname;
+    private PlayerListAdapter mPlayersListAdapter;
+
+    private static String mJoinedChannelName;
+    private static String mNickname;
     private boolean mJoinedChannel = false;
     private boolean mIsHost = false;
     private int mPlayersInRoom = 1;
@@ -160,6 +186,8 @@ public class MultiplayerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_multiplayer);
 
+        startService(new Intent(this, OnClearFromRecentService.class));
+
         mSocket = SocketHolder.getInstance();
 
         mSocket.on(Socket.EVENT_CONNECT, onConnectListener)
@@ -177,6 +205,7 @@ public class MultiplayerActivity extends AppCompatActivity {
         mEditChannel = (EditText) findViewById(R.id.edit_channel);
         mEditNickname = (EditText) findViewById(R.id.edit_nickname);
         mLayoutHostControls = (LinearLayout) findViewById(R.id.layout_hostControls);
+        mLvPlayers = (ListView) findViewById(R.id.lv_playerList);
 
         mBtnJoin = (Button) findViewById(R.id.btn_join);
         mBtnJoin.setOnClickListener(new View.OnClickListener() {
@@ -203,6 +232,7 @@ public class MultiplayerActivity extends AppCompatActivity {
                 }
                 mJoinedChannelName = channelName;
                 mNickname = nickname;
+
                 mJoinedChannel = true;
                 mSocket.emit("joinRoom", joinInfo);
 
@@ -238,6 +268,8 @@ public class MultiplayerActivity extends AppCompatActivity {
                         mEditChannel.setEnabled(true);
                         mEditNickname.setEnabled(true);
                         mLayoutHostControls.setVisibility(View.GONE);
+
+                        mLvPlayers.setAdapter(null);
                     }
                 });
             }
@@ -280,6 +312,11 @@ public class MultiplayerActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
+        if (mJoinedChannel) {
+            emitLeaveRoom();
+        }
+
         mSocket.disconnect();
         mSocket.off(Socket.EVENT_CONNECT, onConnectListener)
                 .off(Socket.EVENT_CONNECT_ERROR, onConnectErrorListener)
@@ -313,7 +350,7 @@ public class MultiplayerActivity extends AppCompatActivity {
         }
     }
 
-    private void emitLeaveRoom() {
+    private static void emitLeaveRoom() {
         JSONObject leaveInfo = new JSONObject();
         try {
             leaveInfo.put("room", mJoinedChannelName);
@@ -324,24 +361,35 @@ public class MultiplayerActivity extends AppCompatActivity {
         mSocket.emit("leaveRoom", leaveInfo);
     }
 
-    private String playerListToString(JSONArray playersList) {
-        String listStr = mNickname + ", you've joined room: " + mJoinedChannelName + ". Players: \n";
-        for (int i = 0; i < playersList.length(); i++) {
-            try {
-                listStr += playersList.getString(i) + "\n";
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-        return listStr;
-    }
+    public static class OnClearFromRecentService extends Service {
 
-    private void updateRoomList(final String channelStateStr) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mTxtChannelState.setText(channelStateStr);
-            }
-        });
+        @Override
+        public IBinder onBind(Intent intent) {
+            return null;
+        }
+
+        @Override
+        public int onStartCommand(Intent intent, int flags, int startId) {
+            Log.d("ClearFromRecentService", "Service Started");
+            return START_NOT_STICKY;
+        }
+
+        @Override
+        public void onDestroy() {
+            super.onDestroy();
+            Log.d("ClearFromRecentService", "Service Destroyed");
+        }
+
+        @Override
+        public void onTaskRemoved(Intent rootIntent) {
+            Log.e("ClearFromRecentService", "END");
+            //Code here
+            if (!mSocket.connected())
+                mSocket.connect();
+            emitLeaveRoom();
+
+            mSocket.disconnect();
+            stopSelf();
+        }
     }
 }
