@@ -79,8 +79,8 @@ public class MapActivity extends AppCompatActivity {
         if (savedInstanceState == null) {
             passedCoords = intent.getDoubleArrayExtra(StreetViewActivity.EXTRA_LOCATION_COORDINATES);
 
-            if (intent.hasExtra(MultiplayerActivity.EXTRA_HINTS_ENABLED)) { //for multiplayer
-                mHintsEnabled = intent.getBooleanExtra(MultiplayerActivity.EXTRA_HINTS_ENABLED, false);
+            if (intent.hasExtra(MultiplayerRoomActivity.EXTRA_HINTS_ENABLED)) { //for multiplayer
+                mHintsEnabled = intent.getBooleanExtra(MultiplayerRoomActivity.EXTRA_HINTS_ENABLED, false);
             } else { //for singleplayer
                 SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
                 mHintsEnabled = preferences.getBoolean(getString(R.string.settings_hintsEnabled), false);

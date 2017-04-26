@@ -91,11 +91,11 @@ public class StreetViewActivity extends AppCompatActivity {
             Intent intent = getIntent();
             mIsSingleplayer = intent.getBooleanExtra(MainActivity.EXTRA_IS_SINGLEPLAYER, true);
             if (!mIsSingleplayer) {
-                mIsHost = intent.getBooleanExtra(MultiplayerActivity.EXTRA_IS_HOST, true);
+                mIsHost = intent.getBooleanExtra(MultiplayerRoomActivity.EXTRA_IS_HOST, true);
 
-                mTimerLimit = intent.getIntExtra(MultiplayerActivity.EXTRA_TIMER_LIMIT, -1);
+                mTimerLimit = intent.getIntExtra(MultiplayerRoomActivity.EXTRA_TIMER_LIMIT, -1);
 
-                mHintsEnabled = intent.getBooleanExtra(MultiplayerActivity.EXTRA_HINTS_ENABLED, false);
+                mHintsEnabled = intent.getBooleanExtra(MultiplayerRoomActivity.EXTRA_HINTS_ENABLED, false);
             } else {
                 String timerLimitStr = preferences.getString(getString(R.string.settings_timerLimit), "-1");
                 mTimerLimit = Integer.parseInt(timerLimitStr);

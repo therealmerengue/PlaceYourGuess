@@ -64,9 +64,9 @@ public class ScoreMPActivity extends AppCompatActivity {
         mSocket = SocketHolder.getInstance();
 
         Intent intent = getIntent();
-        int score = intent.getIntExtra(MultiplayerActivity.EXTRA_FINAL_SCORE, 0);
-        mNickname = intent.getStringExtra(MultiplayerActivity.EXTRA_NICKNAME);
-        String roomName = intent.getStringExtra(MultiplayerActivity.EXTRA_ROOM_NAME);
+        int score = intent.getIntExtra(MultiplayerRoomActivity.EXTRA_FINAL_SCORE, 0);
+        mNickname = intent.getStringExtra(MultiplayerRoomActivity.EXTRA_NICKNAME);
+        String roomName = intent.getStringExtra(MultiplayerRoomActivity.EXTRA_ROOM_NAME);
 
         JSONObject scoreInfo = new JSONObject();
         try {

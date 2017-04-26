@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.trm.placeyourguess.MultiplayerNewRoomActivity"
+    android:orientation="vertical"
+    android:background="@drawable/background"
+    android:weightSum="1"
+    android:gravity="center"
+    android:layout_gravity="center">
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight=".65"
+        android:layout_margin="20dp"
+        android:src="@drawable/logo" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight=".1"
+        android:layout_margin="20dp"
+        android:orientation="vertical">
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Room name"
+            android:id="@+id/edit_roomName"
+            android:textColor="#fff"
+            android:textColorHint="#e3e3e3"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/btn_createNewRoom"
+            android:text="Create room"
+            android:backgroundTint="@color/colorPrimaryDark"
+            android:textColor="#fff"
+            android:layout_gravity="center"
+            android:layout_margin="15dp"/>
+
+    </LinearLayout>
+
+</LinearLayout>

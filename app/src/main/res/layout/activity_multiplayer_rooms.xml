@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/background"
+    tools:context="com.example.trm.placeyourguess.MultiplayerRoomsActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="1"
+        android:padding="15dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/txt_connectionStatus"
+            android:text="Connecting..."
+            android:layout_weight="1"
+            android:fontFamily="sans-serif-smallcaps"
+            android:textSize="20sp"
+            android:layout_gravity="center_vertical"
+            android:textColor="#fff"/>
+
+        <android.support.design.widget.FloatingActionButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/btn_refresh"
+            android:src="@drawable/refresh"
+            app:backgroundTint="@color/colorPrimaryDark"
+            android:layout_gravity="center_vertical"/>
+
+    </LinearLayout>
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/edit_playerName"
+        android:hint="Enter nickname"
+        android:textColor="#fff"
+        android:textColorHint="#e3e3e3"
+        android:layout_margin="10dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="Rooms:"
+        android:fontFamily="sans-serif-smallcaps"
+        android:textSize="20sp"
+        android:gravity="center"
+        android:visibility="gone"
+        android:id="@+id/txt_rooms"
+        android:textColor="#fff"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <ListView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/lv_roomsList"
+            android:layout_weight="1"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_margin="10dp"
+            android:weightSum="1">
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/btn_reloadList"
+                android:text="Reload list"
+                android:backgroundTint="@color/colorPrimaryDark"
+                android:textColor="#fff"
+                android:layout_weight=".5"/>
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="New room"
+                android:id="@+id/btn_newRoom"
+                android:backgroundTint="@color/colorPrimaryDark"
+                android:textColor="#fff"
+                android:layout_gravity="center"
+                android:layout_weight=".5"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

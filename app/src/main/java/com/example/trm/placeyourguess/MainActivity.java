@@ -46,11 +46,19 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (isOnline()) {
-                    Intent intent = new Intent(MainActivity.this, MultiplayerActivity.class);
+                    Intent intent = new Intent(MainActivity.this, MultiplayerRoomsActivity.class);
                     startActivity(intent);
                 } else {
                     showNoInternetAlertDialog("No internet connection", "Connect to the Internet to play the game.");
                 }
+            }
+        });
+
+        mBtnTutorial = (Button) findViewById(R.id.btn_tutorial);
+        mBtnTutorial.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
             }
         });
 
