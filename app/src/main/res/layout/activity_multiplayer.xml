@@ -52,30 +52,30 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/layout_hostControls"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:weightSum="1"
         android:visibility="gone"
-        android:id="@+id/layout_hostControls">
+        android:weightSum="1">
 
         <Button
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
             android:id="@+id/btn_startGame"
-            android:text="@string/start_game"
-            android:layout_weight=".5"
-            android:backgroundTint="@color/colorPrimary"
-            android:textColor="#fff"/>
-
-        <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/btn_switchToSettings"
-            android:text="@string/game_settings"
             android:layout_weight=".5"
             android:backgroundTint="@color/colorPrimary"
-            android:textColor="#fff"/>
+            android:text="@string/start_game"
+            android:textColor="#fff" />
+
+        <Button
+            android:id="@+id/btn_switchToSettings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight=".5"
+            android:backgroundTint="@color/colorPrimary"
+            android:text="@string/game_settings"
+            android:textColor="#fff" />
 
     </LinearLayout>
 
@@ -94,8 +94,6 @@
     <ListView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/lv_playerList">
-
-    </ListView>
+        android:id="@+id/lv_playerList"/>
 
 </LinearLayout>

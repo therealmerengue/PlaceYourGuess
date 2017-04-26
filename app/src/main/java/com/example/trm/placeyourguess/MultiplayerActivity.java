@@ -24,6 +24,8 @@ import io.socket.emitter.Emitter;
 import static android.app.Service.START_NOT_STICKY;
 import static com.example.trm.placeyourguess.LocationListActivity.EXTRA_LATITUDES;
 import static com.example.trm.placeyourguess.LocationListActivity.EXTRA_LONGITUDES;
+import static com.example.trm.placeyourguess.LocationListActivity.REQ_STREET_VIEW_ACTIVITY;
+import static com.example.trm.placeyourguess.StreetViewActivity.EXTRA_HINTS_ENABLED;
 
 public class MultiplayerActivity extends AppCompatActivity {
 
@@ -64,7 +66,10 @@ public class MultiplayerActivity extends AppCompatActivity {
                 @Override
                 public void run() {
                     if (mJoinedChannel) {
-                        emitLeaveRoom();
+                        mBtnJoin.setEnabled(true);
+                        mBtnLeave.setEnabled(false);
+                        mEditNickname.setVisibility(View.VISIBLE);
+                        mEditChannel.setVisibility(View.VISIBLE);
                     }
                     Toast.makeText(MultiplayerActivity.this, "Disconnected from server.", Toast.LENGTH_SHORT).show();
                 }
@@ -140,6 +145,7 @@ public class MultiplayerActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
+
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -148,6 +154,14 @@ public class MultiplayerActivity extends AppCompatActivity {
                     mPlayersListAdapter = new PlayerListAdapter(MultiplayerActivity.this, mNickname, players);
                     mLvPlayers.setAdapter(mPlayersListAdapter);
                     mLvPlayers.setClickable(false);
+
+                    if (!mJoinedChannel) {
+                        mJoinedChannel = true;
+                        mBtnJoin.setEnabled(false);
+                        mBtnLeave.setEnabled(true);
+                        mEditNickname.setVisibility(View.GONE);
+                        mEditChannel.setVisibility(View.GONE);
+                    }
                 }
             });
         }
@@ -233,18 +247,7 @@ public class MultiplayerActivity extends AppCompatActivity {
                 mJoinedChannelName = channelName;
                 mNickname = nickname;
 
-                mJoinedChannel = true;
                 mSocket.emit("joinRoom", joinInfo);
-
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mBtnJoin.setEnabled(false);
-                        mBtnLeave.setEnabled(true);
-                        mEditNickname.setEnabled(false);
-                        mEditChannel.setEnabled(false);
-                    }
-                });
             }
         });
 
@@ -265,8 +268,8 @@ public class MultiplayerActivity extends AppCompatActivity {
                         mTxtChannelState.setText(getString(R.string.not_joined));
                         mEditNickname.getText().clear();
                         mEditChannel.getText().clear();
-                        mEditChannel.setEnabled(true);
-                        mEditNickname.setEnabled(true);
+                        mEditChannel.setVisibility(View.VISIBLE);
+                        mEditNickname.setVisibility(View.VISIBLE);
                         mLayoutHostControls.setVisibility(View.GONE);
 
                         mLvPlayers.setAdapter(null);
