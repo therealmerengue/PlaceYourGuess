@@ -1,4 +1,4 @@
-package com.example.trm.placeyourguess;
+package adapters;
 
 import android.app.Activity;
 import android.support.annotation.NonNull;
@@ -8,6 +8,8 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.example.trm.placeyourguess.R;
 
 public class LocationListAdapter extends ArrayAdapter<String> {
     private final Activity context;

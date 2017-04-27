@@ -1,10 +1,12 @@
-package com.example.trm.placeyourguess;
+package holders;
+
+import com.example.trm.placeyourguess.R;
 
 import java.util.Random;
 
 public class LocationInfoHolder {
 
-    static final String[] mCountryNames = {
+    public static final String[] mCountryNames = {
             "World",
             "Custom",
             "Albania",
@@ -77,7 +79,7 @@ public class LocationInfoHolder {
             "United States",
             "Uruguay"
     };
-    static final String[] mCountryCodes = {
+    public static final String[] mCountryCodes = {
             "AL",
             "AR",
             "AU",
@@ -148,7 +150,7 @@ public class LocationInfoHolder {
             "US",
             "UY"
     };
-    static final Integer[] mImgIDs = {
+    public static final Integer[] mImgIDs = {
             R.drawable.world,
             R.drawable.question_mark,
             R.drawable.albania,
@@ -222,7 +224,7 @@ public class LocationInfoHolder {
             R.drawable.uruguay
     };
 
-    static String getRandomCode() {
+    public static String getRandomCode() {
         Random rand = new Random(System.currentTimeMillis());
         int codeIndex = rand.nextInt(mCountryCodes.length);
         return mCountryCodes[codeIndex];

@@ -10,6 +10,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import adapters.ScoreListAdapter;
+import holders.SocketHolder;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 

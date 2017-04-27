@@ -21,8 +21,7 @@
             android:stopWithTask="false" />
 
         <activity
-            android:name=".MainActivity"
-            android:screenOrientation="portrait">
+            android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -50,7 +49,7 @@
             android:name=".MultiplayerNewRoomActivity"
             android:label="Multiplayer - new room"
             android:theme="@style/AppThemeActionBar" />
-        <activity android:name=".MultiplayerRoomActivity"></activity>
+        <activity android:name=".MultiplayerRoomActivity"/>
     </application>
 
 </manifest>

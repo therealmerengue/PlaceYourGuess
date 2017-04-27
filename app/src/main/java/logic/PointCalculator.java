@@ -1,4 +1,4 @@
-package com.example.trm.placeyourguess;
+package logic;
 
 public final class PointCalculator {
     public static int calculatePoints(float distance) {

@@ -17,8 +17,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import adapters.LocationListAdapter;
+import holders.LocationInfoHolder;
+import holders.SocketHolder;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
+import logic.LocationSelector;
 
 import static io.socket.client.Socket.EVENT_CONNECT;
 
@@ -80,13 +84,13 @@ public class LocationListActivity extends AppCompatActivity {
 
     private Intent mStartGameIntent;
 
-    static final int REQ_STREET_VIEW_ACTIVITY = 101;
+    public static final int REQ_STREET_VIEW_ACTIVITY = 101;
     static final int REQ_SCORE_SP_ACTIVITY = 102;
     static final int REQ_CUSTOM_LOCATION_ACTIVITY = 103;
 
-    static final String EXTRA_LATITUDES = "LATITUDES";
-    static final String EXTRA_LONGITUDES = "LONGITUDES";
-    static final String EXTRA_SCORE = "EXTRA_SCORE";
+    public static final String EXTRA_LATITUDES = "LATITUDES";
+    public static final String EXTRA_LONGITUDES = "LONGITUDES";
+    public static final String EXTRA_SCORE = "EXTRA_SCORE";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,7 +126,7 @@ public class LocationListActivity extends AppCompatActivity {
 
                 if (position == 0) {
                     randomCountry = true;
-                } else if (position == 1) { //TODO: start pick custom location activity or smth
+                } else if (position == 1) {
                     Intent customLocationIntent = new Intent(LocationListActivity.this, CustomLocationActivity.class);
                     startActivityForResult(customLocationIntent, REQ_CUSTOM_LOCATION_ACTIVITY);
                     return; //return at the end? <- yes

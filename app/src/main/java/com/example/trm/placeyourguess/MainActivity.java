@@ -12,6 +12,8 @@ import android.widget.Button;
 import java.io.IOException;
 import java.io.InputStream;
 
+import holders.BoundingBoxesHolder;
+
 public class MainActivity extends AppCompatActivity {
 
     private Button mBtnSingleplayer;

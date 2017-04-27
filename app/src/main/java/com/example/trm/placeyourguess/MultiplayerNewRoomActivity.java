@@ -11,6 +11,7 @@ import android.widget.Toast;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import holders.SocketHolder;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 

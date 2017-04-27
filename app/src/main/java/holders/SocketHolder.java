@@ -1,4 +1,4 @@
-package com.example.trm.placeyourguess;
+package holders;
 
 import java.net.URISyntaxException;
 
@@ -15,7 +15,7 @@ public class SocketHolder {
                 IO.Options options = new IO.Options();
                 options.timeout = 500;
                 options.reconnectionAttempts = 2;
-                mSocket = IO.socket("http://192.168.1.102:8080", options);
+                mSocket = IO.socket("https://place-your-guess.herokuapp.com/", options);
             } catch (URISyntaxException e) {
                 e.printStackTrace();
             }

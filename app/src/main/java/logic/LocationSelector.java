@@ -1,4 +1,4 @@
-package com.example.trm.placeyourguess;
+package logic;
 
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -8,6 +8,7 @@ import android.util.Pair;
 
 import com.cocoahero.android.geojson.Feature;
 import com.cocoahero.android.geojson.FeatureCollection;
+import com.example.trm.placeyourguess.LocationListActivity;
 import com.google.android.gms.maps.model.LatLng;
 
 import org.json.JSONArray;
@@ -24,6 +25,9 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+
+import holders.BoundingBoxesHolder;
+import holders.LocationInfoHolder;
 
 public class LocationSelector {
     private FeatureCollection mBoxesFeatureCollection;

@@ -1,12 +1,9 @@
 package com.example.trm.placeyourguess;
 
-import android.app.Service;
 import android.content.Intent;
-import android.os.IBinder;
+import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -19,12 +16,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import adapters.RoomListAdapter;
+import holders.SocketHolder;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
-import static com.example.trm.placeyourguess.MultiplayerNewRoomActivity.EXTRA_ROOM_NAME;
-import static com.example.trm.placeyourguess.MultiplayerNewRoomActivity.EXTRA_PLAYER_NAME;
 import static com.example.trm.placeyourguess.MultiplayerNewRoomActivity.EXTRA_IS_HOST;
+import static com.example.trm.placeyourguess.MultiplayerNewRoomActivity.EXTRA_PLAYER_NAME;
+import static com.example.trm.placeyourguess.MultiplayerNewRoomActivity.EXTRA_ROOM_NAME;
 
 public class MultiplayerRoomsActivity extends AppCompatActivity {
 

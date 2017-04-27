@@ -1,15 +1,14 @@
 package com.example.trm.placeyourguess;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.location.Location;
+import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
-import android.content.Intent;
-import android.graphics.Color;
-import android.location.Location;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -28,7 +27,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.text.DecimalFormat;
-import java.util.Map;
+
+import logic.PointCalculator;
 
 import static com.example.trm.placeyourguess.R.string.points;
 

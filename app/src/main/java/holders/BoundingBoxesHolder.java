@@ -1,4 +1,4 @@
-package com.example.trm.placeyourguess;
+package holders;
 
 import com.cocoahero.android.geojson.FeatureCollection;
 import com.cocoahero.android.geojson.GeoJSON;
@@ -8,7 +8,6 @@ import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 

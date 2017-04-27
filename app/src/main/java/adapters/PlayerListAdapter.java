@@ -1,4 +1,4 @@
-package com.example.trm.placeyourguess;
+package adapters;
 
 import android.app.Activity;
 import android.graphics.Typeface;
@@ -8,6 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
+
+import com.example.trm.placeyourguess.R;
 
 public class PlayerListAdapter extends ArrayAdapter<String> {
 
