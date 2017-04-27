@@ -25,7 +25,7 @@ public class MultiplayerNewRoomActivity extends AppCompatActivity {
 
     private static Socket mSocket;
 
-    private final String EVENT_CREATE_ROOM = "createRoom";
+    static final String EVENT_CREATE_ROOM = "createRoom";
     private final String EVENT_ROOM_ALREADY_EXISTS = "roomAlreadyExists";
     private final String EVENT_ROOM_CREATED = "roomCreated";
 
@@ -38,15 +38,11 @@ public class MultiplayerNewRoomActivity extends AppCompatActivity {
     private Emitter.Listener onRoomAlreadyExistsListener = new Emitter.Listener() {
         @Override
         public void call(Object... args) {
-            mNewRoomName = null;
-            mPlayerName = null;
-
-            //TODO: maybe replace this with prompt whether to join already existing room
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    mEditRoomName.getText().clear();
-                    Toast.makeText(MultiplayerNewRoomActivity.this, "Room with that name already exists - choose a different name", Toast.LENGTH_LONG).show();
+                    JoinExistingRoomDialogFragment fragment = JoinExistingRoomDialogFragment.newInstance(mNewRoomName, mPlayerName);
+                    fragment.show(getSupportFragmentManager(), "TAG_JOIN_EXISTING_ROOM");
                 }
             });
         }

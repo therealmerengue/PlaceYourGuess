@@ -44,11 +44,13 @@
         <activity
             android:name=".MultiplayerRoomsActivity"
             android:label="Multiplayer - rooms"
-            android:theme="@style/AppThemeActionBar" />
+            android:theme="@style/AppThemeActionBar"
+            android:windowSoftInputMode="stateHidden"/>
         <activity
             android:name=".MultiplayerNewRoomActivity"
             android:label="Multiplayer - new room"
-            android:theme="@style/AppThemeActionBar" />
+            android:theme="@style/AppThemeActionBar"
+            android:windowSoftInputMode="stateHidden"/>
         <activity android:name=".MultiplayerRoomActivity"/>
     </application>
 

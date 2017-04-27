@@ -102,12 +102,24 @@ public class MultiplayerRoomActivity extends AppCompatActivity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    Toast.makeText(MultiplayerRoomActivity.this, "Room does not exist.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(MultiplayerRoomActivity.this, "Room does not exist anymore - reating a new one with the same name.", Toast.LENGTH_LONG).show();
+                    mLayoutHostControls.setVisibility(View.VISIBLE);
                 }
             });
 
-            stopService(new Intent(MultiplayerRoomActivity.this, OnClearFromRecentService.class));
-            MultiplayerRoomActivity.this.finish();
+            //create a new room with the same name as the previous one
+            JSONObject newRoomInfo = new JSONObject();
+            try {
+                newRoomInfo.put("roomName", mRoomName);
+                newRoomInfo.put("hostName", mPlayerName);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            mSocket.emit(MultiplayerNewRoomActivity.EVENT_CREATE_ROOM, newRoomInfo);
+            mSocket.emit(EVENT_REQUEST_PLAYER_LIST, mRoomName);
+
+            mIsHost = true;
         }
     };
 
