@@ -1,6 +1,10 @@
 package logic;
 
-public final class PointCalculator {
+import android.location.Location;
+
+import com.google.android.gms.maps.model.LatLng;
+
+public final class Calculator {
     public static int calculatePoints(float distance) {
         int points = 0;
 
@@ -17,5 +21,17 @@ public final class PointCalculator {
         }
 
         return points;
+    }
+
+    public static float measureDistance(LatLng latLng1, LatLng latLng2) {
+        Location location1 = new Location("");
+        location1.setLatitude(latLng1.latitude);
+        location1.setLongitude(latLng1.longitude);
+
+        Location location2 = new Location("");
+        location2.setLatitude(latLng2.latitude);
+        location2.setLongitude(latLng2.longitude);
+
+        return location1.distanceTo(location2);
     }
 }

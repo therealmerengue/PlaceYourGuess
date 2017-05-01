@@ -3,7 +3,6 @@ package com.example.trm.placeyourguess;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.location.Location;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.preference.PreferenceManager;
@@ -28,7 +27,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.text.DecimalFormat;
 
-import logic.PointCalculator;
+import logic.Calculator;
 
 import static com.example.trm.placeyourguess.R.string.points;
 
@@ -111,7 +110,7 @@ public class MapActivity extends AppCompatActivity {
                     if (mGuessedLocationMarker == null) {
                         Toast.makeText(MapActivity.this, "Place your guess to use this hint.", Toast.LENGTH_SHORT).show();
                     } else {
-                        float distance = measureDistance(mGuessedLocationMarker.getPosition(), mPassedLocationCoords) / 1000;
+                        float distance = Calculator.measureDistance(mGuessedLocationMarker.getPosition(), mPassedLocationCoords) / 1000;
                         DecimalFormat df = new DecimalFormat("###.##");
                         Toast.makeText(MapActivity.this, "Your guess is " + df.format(distance) + " km off", Toast.LENGTH_SHORT).show();
                     }
@@ -127,7 +126,7 @@ public class MapActivity extends AppCompatActivity {
                 mGuessConfirmed = true;
 
                 LatLng markerCoords = mGuessedLocationMarker.getPosition();
-                mGuessOffset = measureDistance(markerCoords, mPassedLocationCoords);
+                mGuessOffset = Calculator.measureDistance(markerCoords, mPassedLocationCoords);
 
                 PolylineOptions line = new PolylineOptions()
                         .add(mPassedLocationCoords, markerCoords)
@@ -275,7 +274,7 @@ public class MapActivity extends AppCompatActivity {
         mLayoutScore.setVisibility(View.VISIBLE);
         mTxtRoundTimer.setVisibility(View.GONE);
         if (mGuessConfirmed) {
-            mScore = PointCalculator.calculatePoints(distance);
+            mScore = Calculator.calculatePoints(distance);
         } else {
             mScore = 0;
         }
@@ -314,15 +313,4 @@ public class MapActivity extends AppCompatActivity {
         }
     }
 
-    private float measureDistance(LatLng latLng1, LatLng latLng2) {
-        Location location1 = new Location("");
-        location1.setLatitude(latLng1.latitude);
-        location1.setLongitude(latLng1.longitude);
-
-        Location location2 = new Location("");
-        location2.setLatitude(latLng2.latitude);
-        location2.setLongitude(latLng2.longitude);
-
-        return location1.distanceTo(location2);
-    }
 }

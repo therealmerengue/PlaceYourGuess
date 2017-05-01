@@ -44,7 +44,8 @@ public class LocationSelector {
     private Intent mStartGameIntent;
 
     private static final String URL_BEGINNING = "http://maps.google.com/cbk?output=json&hl=en&ll=";
-    private static final String URL_END = "&radius=10000&cb_client=maps_sv&v=4";
+    private static final String URL_RADIUS = "&radius=";
+    private static final String URL_END = "&cb_client=maps_sv&v=4";
 
     public LocationSelector(Context context, Intent startGameIntent, int numberOfLocations, boolean randomLocation, String countryCode) {
         mNumOfLocations = numberOfLocations;
@@ -193,6 +194,17 @@ public class LocationSelector {
         return false;
     }
 
+    private int getRadius(LatLng southWest, LatLng northEast) {
+        float distanceAcrossBounds = Calculator.measureDistance(southWest, northEast);
+
+        if (distanceAcrossBounds > 1000000) //m
+            return 10000; //m
+        else if (distanceAcrossBounds > 25000)
+            return 1000;
+        else
+            return 100;
+    }
+
     private class ImageChecker extends AsyncTask<LatLng, Void, List<LatLng>> {
         @Override
         protected void onPreExecute() {
@@ -234,7 +246,9 @@ public class LocationSelector {
 
                 while (response == null || response.length() == 0 || locationCountryCode == null) {
                     LatLng randomLocation = getRandomLatLng(new Pair<>(southWest, northEast));
-                    String url = URL_BEGINNING + randomLocation.latitude + "," + randomLocation.longitude + URL_END;
+                    int radius = getRadius(southWest, northEast);
+                    String url = URL_BEGINNING + randomLocation.latitude + "," + randomLocation.longitude +
+                            URL_RADIUS + Integer.toString(radius) + URL_END;
                     response = readJsonFromUrl(url);
                     if (response == null || response.length() == 0)
                         continue;
