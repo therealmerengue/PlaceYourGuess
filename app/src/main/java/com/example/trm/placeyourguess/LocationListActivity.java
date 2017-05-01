@@ -17,11 +17,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.List;
+
 import adapters.LocationListAdapter;
-import holders.LocationInfoHolder;
+import holders.LocationListItemsHolder;
 import holders.SocketHolder;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
+import logic.CitySelector;
 import logic.LocationSelector;
 
 import static io.socket.client.Socket.EVENT_CONNECT;
@@ -107,7 +110,7 @@ public class LocationListActivity extends AppCompatActivity {
 
         mIsSingleplayer = getIntent().getBooleanExtra(MainActivity.EXTRA_IS_SINGLEPLAYER, true);
 
-        LocationListAdapter adapter = new LocationListAdapter(this, LocationInfoHolder.mCountryNames, LocationInfoHolder.mImgIDs);
+        LocationListAdapter adapter = new LocationListAdapter(this, LocationListItemsHolder.mCountryNames, LocationListItemsHolder.mImgIDs);
         mListviewCountries = (ListView) findViewById(R.id.lv_countryList);
         mListviewCountries.setAdapter(adapter);
 
@@ -129,9 +132,39 @@ public class LocationListActivity extends AppCompatActivity {
                 } else if (position == 1) {
                     Intent customLocationIntent = new Intent(LocationListActivity.this, CustomLocationActivity.class);
                     startActivityForResult(customLocationIntent, REQ_CUSTOM_LOCATION_ACTIVITY);
-                    return; //return at the end? <- yes
+                    return;
+                } else if (position == 2) {
+                    if (!mIsSingleplayer) {
+                        String timerLimitStr = preferences.getString(getString(R.string.settings_timerLimit), "-1");
+                        int timerLimit = Integer.parseInt(timerLimitStr);
+                        boolean hintsEnabled = preferences.getBoolean(getString(R.string.settings_hintsEnabled), false);
+                        selectedCountryCode = "cities";
+
+                        JSONObject settings = getSettings(false, selectedCountryCode, timerLimit, hintsEnabled, null);
+                        mSocket.emit("loadCityLocations", settings);
+                        Log.e("loadLocations", "host emits load city locations");
+
+                        finish();
+                    } else {
+                        CitySelector selector = new CitySelector();
+                        List<LatLng> cities = selector.selectCities(mNumOfRounds);
+                        double[] latitudes = new double[mNumOfRounds];
+                        double[] longitudes = new double[mNumOfRounds];
+
+                        for (int i = 0; i < mNumOfRounds; i++) {
+                            LatLng cityLatLng = cities.get(i);
+                            latitudes[i] = cityLatLng.latitude;
+                            longitudes[i] = cityLatLng.longitude;
+                        }
+
+                        mStartGameIntent.putExtra(LocationListActivity.EXTRA_LATITUDES, latitudes);
+                        mStartGameIntent.putExtra(LocationListActivity.EXTRA_LONGITUDES, longitudes);
+
+                        startActivityForResult(mStartGameIntent, LocationListActivity.REQ_STREET_VIEW_ACTIVITY);
+                        return;
+                    }
                 } else  { //start streetViewActivity with country code.
-                    selectedCountryCode = LocationInfoHolder.mCountryCodes[position - 2];
+                    selectedCountryCode = LocationListItemsHolder.mCountryCodes[position - 3];
                 }
 
                 if (!mIsSingleplayer) { //MULTIPLAYER

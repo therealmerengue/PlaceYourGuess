@@ -38,7 +38,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:backgroundTint="@color/colorPrimary"
-            android:drawableLeft="@drawable/multiplayer"
+            android:drawableLeft="@drawable/singleplayer"
             android:text="@string/multiplayer"
             android:textColor="#fff" />
 
@@ -47,7 +47,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:backgroundTint="?attr/colorPrimary"
-            android:drawableLeft="@drawable/tutorial"
+            android:drawableLeft="@drawable/help"
             android:text="@string/tutorial"
             android:textColor="#fff" />
 
@@ -55,7 +55,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="center">
+            android:gravity="center"
+            android:layout_margin="5dp">
 
             <android.support.design.widget.FloatingActionButton
                 android:id="@+id/btn_settings"
@@ -63,7 +64,8 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="8dp"
                 android:src="@drawable/settings"
-                app:backgroundTint="@color/colorPrimaryDark" />
+                app:backgroundTint="@color/colorPrimaryDark"
+                app:fabSize="mini"/>
 
             <Space
                 android:layout_width="0dp"
@@ -76,8 +78,9 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="8dp"
                 android:background="@color/colorPrimaryDark"
-                android:src="@drawable/information"
-                app:backgroundTint="@color/colorPrimaryDark" />
+                android:src="@drawable/info"
+                app:backgroundTint="@color/colorPrimaryDark"
+                app:fabSize="mini"/>
 
         </LinearLayout>
 

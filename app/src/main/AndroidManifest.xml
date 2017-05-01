@@ -20,8 +20,9 @@
             android:name=".MultiplayerRoomActivity$OnClearFromRecentService"
             android:stopWithTask="false" />
 
-        <activity
-            android:name=".MainActivity">
+        <activity android:name=".MainActivity"
+            android:label="PlaceYourGuess"
+            android:theme="@style/AppThemeActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -45,13 +46,13 @@
             android:name=".MultiplayerRoomsActivity"
             android:label="Multiplayer - rooms"
             android:theme="@style/AppThemeActionBar"
-            android:windowSoftInputMode="stateHidden"/>
+            android:windowSoftInputMode="stateHidden" />
         <activity
             android:name=".MultiplayerNewRoomActivity"
             android:label="Multiplayer - new room"
             android:theme="@style/AppThemeActionBar"
-            android:windowSoftInputMode="stateHidden"/>
-        <activity android:name=".MultiplayerRoomActivity"/>
+            android:windowSoftInputMode="stateHidden" />
+        <activity android:name=".MultiplayerRoomActivity" />
     </application>
 
 </manifest>

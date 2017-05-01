@@ -35,4 +35,5 @@
     <string name="final_scores">Final scores:</string>
     <string name="ok">OK</string>
     <string name="hold_and_drag_markers_to_select_custom_location">Hold and drag markers to select custom location.</string>
+    <string name="place_your_guess">Place your guess</string>
 </resources>

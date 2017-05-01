@@ -12,7 +12,7 @@ import android.widget.Button;
 import java.io.IOException;
 import java.io.InputStream;
 
-import holders.BoundingBoxesHolder;
+import holders.LocationInfoHolder;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -74,11 +74,14 @@ public class MainActivity extends AppCompatActivity {
         });
 
         InputStream boxesStream = getResources().openRawResource(R.raw.boxes);
-        BoundingBoxesHolder bbHolder = BoundingBoxesHolder.getInstance();
+        LocationInfoHolder bbHolder = LocationInfoHolder.getInstance();
         bbHolder.loadBoxes(boxesStream);
 
         InputStream countriesStream = getResources().openRawResource(R.raw.codes);
         bbHolder.loadCountries(countriesStream);
+
+        InputStream citiesStream = getResources().openRawResource(R.raw.cities);
+        bbHolder.loadCities(citiesStream);
     }
 
     private boolean isOnline() {

@@ -15,14 +15,14 @@
         android:id="@+id/iv_logo"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
-        android:layout_weight=".4"
+        android:layout_weight=".45"
         android:layout_marginBottom="20dp"
         android:src="@drawable/logo" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight=".4"
+        android:layout_weight=".45"
         android:orientation="vertical"
         android:paddingLeft="50dp"
         android:paddingRight="50dp">
@@ -50,22 +50,23 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:backgroundTint="?attr/colorPrimary"
-            android:drawableLeft="@drawable/tutorial"
+            android:drawableLeft="@drawable/help"
             android:text="@string/tutorial"
             android:textColor="#fff" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:layout_margin="5dp">
 
             <android.support.design.widget.FloatingActionButton
                 android:id="@+id/btn_settings"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_margin="16dp"
                 android:src="@drawable/settings"
-                app:backgroundTint="@color/colorPrimaryDark" />
+                app:backgroundTint="@color/colorPrimaryDark"
+                app:fabSize="mini"/>
 
             <Space
                 android:layout_width="0dp"
@@ -76,10 +77,10 @@
                 android:id="@+id/btn_about"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="16dp"
                 android:background="@color/colorPrimaryDark"
-                android:src="@drawable/information"
-                app:backgroundTint="@color/colorPrimaryDark" />
+                android:src="@drawable/info"
+                app:backgroundTint="@color/colorPrimaryDark"
+                app:fabSize="mini" />
 
         </LinearLayout>
 

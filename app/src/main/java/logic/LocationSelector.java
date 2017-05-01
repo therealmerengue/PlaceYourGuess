@@ -2,6 +2,7 @@ package logic;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.util.Pair;
@@ -26,8 +27,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import holders.BoundingBoxesHolder;
 import holders.LocationInfoHolder;
+import holders.LocationListItemsHolder;
+
+import static android.R.id.message;
 
 public class LocationSelector {
     private FeatureCollection mBoxesFeatureCollection;
@@ -50,9 +53,9 @@ public class LocationSelector {
         mCountryCode = countryCode;
         mStartGameIntent = startGameIntent;
 
-        BoundingBoxesHolder bbHolder = BoundingBoxesHolder.getInstance();
-        mBoxesFeatureCollection = bbHolder.getBoxes();
-        mCountriesInfo = bbHolder.getCountries();
+        LocationInfoHolder holder = LocationInfoHolder.getInstance();
+        mBoxesFeatureCollection = holder.getBoxes();
+        mCountriesInfo = holder.getCountries();
     }
 
     public void selectLocations() {
@@ -194,7 +197,18 @@ public class LocationSelector {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            mProgressDialog = ProgressDialog.show(mContextActivity, "", "Please Wait", false);
+
+            mProgressDialog = new ProgressDialog(mContextActivity);
+            mProgressDialog.setTitle("Loading locations...");
+            mProgressDialog.setMessage("Please wait");
+            mProgressDialog.setCancelable(false);
+            mProgressDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    ImageChecker.this.cancel(true);
+                }
+            });
+            mProgressDialog.show();
         }
 
         @Override
@@ -212,7 +226,7 @@ public class LocationSelector {
                 String locationCountryCode = null;
 
                 if (mRandomLocation) {
-                    mCountryCode = LocationInfoHolder.getRandomCode();
+                    mCountryCode = LocationListItemsHolder.getRandomCode();
                     Pair<LatLng, LatLng> bounds = getBounds(mCountryCode);
                     southWest = bounds.first;
                     northEast = bounds.second;
