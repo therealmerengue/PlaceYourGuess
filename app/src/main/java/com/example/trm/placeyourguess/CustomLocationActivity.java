@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -18,8 +19,11 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+
+import logic.Calculator;
 
 public class CustomLocationActivity extends AppCompatActivity {
 
@@ -98,6 +102,15 @@ public class CustomLocationActivity extends AppCompatActivity {
 
                 LatLng marker1Position = marker1.getPosition();
                 LatLng marker2Position = marker2.getPosition();
+
+                float distanceAcrossBounds = Calculator.measureDistance(marker1Position, marker2Position);
+                if (distanceAcrossBounds < 5000) {
+                    DecimalFormat df = new DecimalFormat("###.##");
+                    String distanceStr = df.format(distanceAcrossBounds / 1000) + " km";
+                    String label = "Selected area is too small. It's only " + distanceStr + " across. Choose a larger area (at least 10 km across).";
+                    Toast.makeText(CustomLocationActivity.this, label, Toast.LENGTH_LONG).show();
+                    return;
+                }
 
                 latitudeBounds[0] = marker1Position.latitude;
                 latitudeBounds[1] = marker2Position.latitude;

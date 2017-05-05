@@ -24,6 +24,7 @@ public final class LocationInfoHolder {
     private FeatureCollection mBoxesFeatureCollection;
     private JSONArray mCountries;
     private JSONArray mCities;
+    private JSONArray mFamousPlaces;
 
     public void loadBoxes(InputStream stream) {
         if (mBoxesFeatureCollection == null) {
@@ -63,6 +64,17 @@ public final class LocationInfoHolder {
         IOUtils.closeQuietly(stream);
     }
 
+    public void loadFamousPlaces(InputStream stream) {
+        try {
+            String famousJSONStr = IOUtils.toString(stream);
+            mFamousPlaces = new JSONArray(famousJSONStr);
+        } catch (IOException | JSONException e) {
+            e.printStackTrace();
+        }
+
+        IOUtils.closeQuietly(stream);
+    }
+
     public FeatureCollection getBoxes() {
         if (mBoxesFeatureCollection == null) {
             throw new NullPointerException("Boxes not loaded.");
@@ -84,6 +96,14 @@ public final class LocationInfoHolder {
             throw new NullPointerException("Cities not loaded.");
         } else {
             return mCities;
+        }
+    }
+
+    public JSONArray getFamousPlaces() {
+        if (mFamousPlaces == null) {
+            throw new NullPointerException("Famous places not loaded.");
+        } else {
+            return mFamousPlaces;
         }
     }
 

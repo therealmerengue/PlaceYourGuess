@@ -27,7 +27,7 @@
         <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Room name"
+            android:hint="@string/room_name"
             android:id="@+id/edit_roomName"
             android:textColor="#fff"
             android:textColorHint="#e3e3e3"/>
@@ -36,7 +36,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/btn_createNewRoom"
-            android:text="Create room"
+            android:text="@string/create_room"
             android:backgroundTint="@color/colorPrimaryDark"
             android:textColor="#fff"
             android:layout_gravity="center"

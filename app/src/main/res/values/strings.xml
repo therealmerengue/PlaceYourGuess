@@ -18,8 +18,6 @@
     <string name="settings_hintsEnabled">hintsEnabled</string>
     <string name="confirm">Confirm</string>
     <string name="title_activity_country_list">CountryListActivity</string>
-
-    <string name="ably_key">8ScUCQ.o3tGtQ:9xIpVWzVkp-B9ci-</string>
     <string name="channel_name">Channel name</string>
     <string name="join">Join</string>
     <string name="num_of_players_ready">Players ready:</string>
@@ -36,4 +34,14 @@
     <string name="ok">OK</string>
     <string name="hold_and_drag_markers_to_select_custom_location">Hold and drag markers to select custom location.</string>
     <string name="place_your_guess">Place your guess</string>
+    <string name="room_name">Room name</string>
+    <string name="create_room">Create room</string>
+    <string name="room">Room:</string>
+    <string name="leave_room">Leave room</string>
+    <string name="players">Players:</string>
+    <string name="start_game_btn">Start game</string>
+    <string name="connecting">Connecting...</string>
+    <string name="rooms">Rooms:</string>
+    <string name="reload_list">Reload list</string>
+    <string name="new_room">New room</string>
 </resources>

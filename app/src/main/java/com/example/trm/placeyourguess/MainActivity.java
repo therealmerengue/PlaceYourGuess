@@ -74,14 +74,17 @@ public class MainActivity extends AppCompatActivity {
         });
 
         InputStream boxesStream = getResources().openRawResource(R.raw.boxes);
-        LocationInfoHolder bbHolder = LocationInfoHolder.getInstance();
-        bbHolder.loadBoxes(boxesStream);
+        LocationInfoHolder holder = LocationInfoHolder.getInstance();
+        holder.loadBoxes(boxesStream);
 
         InputStream countriesStream = getResources().openRawResource(R.raw.codes);
-        bbHolder.loadCountries(countriesStream);
+        holder.loadCountries(countriesStream);
 
         InputStream citiesStream = getResources().openRawResource(R.raw.cities);
-        bbHolder.loadCities(citiesStream);
+        holder.loadCities(citiesStream);
+
+        InputStream famousStream = getResources().openRawResource(R.raw.famous);
+        holder.loadFamousPlaces(famousStream);
     }
 
     private boolean isOnline() {

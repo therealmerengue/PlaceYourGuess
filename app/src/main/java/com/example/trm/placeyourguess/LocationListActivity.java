@@ -24,7 +24,7 @@ import holders.LocationListItemsHolder;
 import holders.SocketHolder;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
-import logic.CitySelector;
+import logic.ReadyLocationSelector;
 import logic.LocationSelector;
 
 import static io.socket.client.Socket.EVENT_CONNECT;
@@ -133,28 +133,44 @@ public class LocationListActivity extends AppCompatActivity {
                     Intent customLocationIntent = new Intent(LocationListActivity.this, CustomLocationActivity.class);
                     startActivityForResult(customLocationIntent, REQ_CUSTOM_LOCATION_ACTIVITY);
                     return;
-                } else if (position == 2) {
+                } else if (position == 2 || position == 3) {
                     if (!mIsSingleplayer) {
                         String timerLimitStr = preferences.getString(getString(R.string.settings_timerLimit), "-1");
                         int timerLimit = Integer.parseInt(timerLimitStr);
                         boolean hintsEnabled = preferences.getBoolean(getString(R.string.settings_hintsEnabled), false);
-                        selectedCountryCode = "cities";
+                        selectedCountryCode = "ready";
 
                         JSONObject settings = getSettings(false, selectedCountryCode, timerLimit, hintsEnabled, null);
-                        mSocket.emit("loadCityLocations", settings);
+
+                        try {
+                            if (position == 2)
+                                settings.put("locationType", 1); //cities
+                            else
+                                settings.put("locationType", 2); //famous places
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+
+                        mSocket.emit("loadReadyLocations", settings);
                         Log.e("loadLocations", "host emits load city locations");
 
                         finish();
                     } else {
-                        CitySelector selector = new CitySelector();
-                        List<LatLng> cities = selector.selectCities(mNumOfRounds);
+                        ReadyLocationSelector selector = new ReadyLocationSelector();
+                        List<LatLng> locations;
+                        if (position == 2)
+                            locations = selector.selectCities(mNumOfRounds);
+                        else
+                            locations = selector.selectFamousPlaces(mNumOfRounds);
+
                         double[] latitudes = new double[mNumOfRounds];
                         double[] longitudes = new double[mNumOfRounds];
 
                         for (int i = 0; i < mNumOfRounds; i++) {
-                            LatLng cityLatLng = cities.get(i);
-                            latitudes[i] = cityLatLng.latitude;
-                            longitudes[i] = cityLatLng.longitude;
+                            LatLng locLatLng = locations.get(i);
+                            latitudes[i] = locLatLng.latitude;
+                            longitudes[i] = locLatLng.longitude;
                         }
 
                         mStartGameIntent.putExtra(LocationListActivity.EXTRA_LATITUDES, latitudes);
@@ -164,7 +180,7 @@ public class LocationListActivity extends AppCompatActivity {
                         return;
                     }
                 } else  { //start streetViewActivity with country code.
-                    selectedCountryCode = LocationListItemsHolder.mCountryCodes[position - 3];
+                    selectedCountryCode = LocationListItemsHolder.mCountryCodes[position - 4];
                 }
 
                 if (!mIsSingleplayer) { //MULTIPLAYER

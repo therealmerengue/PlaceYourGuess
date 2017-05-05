@@ -122,27 +122,31 @@ public class MapActivity extends AppCompatActivity {
         mBtnConfirm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mGuessMade = true;
-                mGuessConfirmed = true;
+                if (!mGuessMade) {
+                    mGuessMade = true;
+                    mGuessConfirmed = true;
 
-                LatLng markerCoords = mGuessedLocationMarker.getPosition();
-                mGuessOffset = Calculator.measureDistance(markerCoords, mPassedLocationCoords);
+                    LatLng markerCoords = mGuessedLocationMarker.getPosition();
+                    mGuessOffset = Calculator.measureDistance(markerCoords, mPassedLocationCoords);
 
-                PolylineOptions line = new PolylineOptions()
-                        .add(mPassedLocationCoords, markerCoords)
-                        .width(5)
-                        .color(Color.BLUE);
+                    PolylineOptions line = new PolylineOptions()
+                            .add(mPassedLocationCoords, markerCoords)
+                            .width(5)
+                            .color(Color.BLUE);
 
-                mMap.addPolyline(line);
+                    mMap.addPolyline(line);
 
-                showResultOnMap();
-                showScore(mGuessOffset / 1000);
+                    showResultOnMap();
+                    showScore(mGuessOffset / 1000);
 
-                if (mRoundTimer != null) {
-                    mRoundTimer.cancel();
+                    if (mRoundTimer != null) {
+                        mRoundTimer.cancel();
+                    }
+
+                    StreetViewActivity.cancelCountDownTimer();
+                } else {
+                    mBtnNextLocation.callOnClick();
                 }
-
-                StreetViewActivity.cancelCountDownTimer();
             }
         });
 
@@ -267,12 +271,12 @@ public class MapActivity extends AppCompatActivity {
                 mActualLocationMarker.showInfoWindow();
             }
         });
-        mBtnConfirm.setEnabled(false);
     }
 
     private void showScore(float distance) {
         mLayoutScore.setVisibility(View.VISIBLE);
-        mTxtRoundTimer.setVisibility(View.GONE);
+        if (mTxtRoundTimer != null)
+            mTxtRoundTimer.setVisibility(View.GONE);
         if (mGuessConfirmed) {
             mScore = Calculator.calculatePoints(distance);
         } else {
@@ -301,12 +305,16 @@ public class MapActivity extends AppCompatActivity {
 
                     @Override
                     public void onFinish() {
-                        mGuessMade = true;
-                        if (mMap != null) {
-                            showResultOnMap();
+                        if (mGuessedLocationMarker != null) {
+                            mBtnConfirm.callOnClick();
+                        } else {
+                            mGuessMade = true;
+                            if (mMap != null) {
+                                showResultOnMap();
+                            }
+                            mTxtRoundTimer.setText("0");
+                            showScore(0);
                         }
-                        mTxtRoundTimer.setText("0");
-                        showScore(0);
                     }
                 }.start();
             }

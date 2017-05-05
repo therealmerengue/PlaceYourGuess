@@ -8,6 +8,7 @@ import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.OnStreetViewPanoramaReadyCallback;
@@ -23,6 +24,7 @@ public class StreetViewActivity extends AppCompatActivity {
     private TextView mTxtTotalScore;
     private TextView mTxtRoundsLeft;
     private TextView mTxtTimer;
+    private Button mBtnBackToStart;
 
     private StreetViewPanorama mStreetViewPanorama;
 
@@ -82,6 +84,17 @@ public class StreetViewActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 startMapActivity();
+            }
+        });
+
+        mBtnBackToStart = (Button) findViewById(R.id.btn_resetLocation);
+        mBtnBackToStart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mStreetViewPanorama != null) {
+                    LatLng defaultPosition = new LatLng(mLatitudes[mRoundNumber - 1], mLongitudes[mRoundNumber - 1]);
+                    mStreetViewPanorama.setPosition(defaultPosition);
+                }
             }
         });
 

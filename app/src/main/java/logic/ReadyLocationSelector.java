@@ -11,17 +11,19 @@ import java.util.Random;
 
 import holders.LocationInfoHolder;
 
-public class CitySelector {
+public class ReadyLocationSelector {
     private JSONArray mCitiesInfo;
+    private JSONArray mFamousPlacesInfo;
 
-    public CitySelector() {
+    public ReadyLocationSelector() {
         LocationInfoHolder holder = LocationInfoHolder.getInstance();
         mCitiesInfo = holder.getCities();
+        mFamousPlacesInfo = holder.getFamousPlaces();
     }
 
-    private boolean isAlreadySelected(List<Integer> selectedCitiesIndexes, int index) {
-        for (int i = 0; i < selectedCitiesIndexes.size(); i++) {
-            if (selectedCitiesIndexes.get(i).equals(index))
+    private boolean isAlreadySelected(List<Integer> selectedLocationsIndexes, int index) {
+        for (int i = 0; i < selectedLocationsIndexes.size(); i++) {
+            if (selectedLocationsIndexes.get(i).equals(index))
                 return true;
         }
         return false;
@@ -48,6 +50,27 @@ public class CitySelector {
         return cityLatLng;
     }
 
+    private LatLng getRandomFamousPlace(List<Integer> selectedPlacesIndexes) {
+        Random random = new Random(System.currentTimeMillis());
+        int placeIndex = random.nextInt(mFamousPlacesInfo.length());
+        while (isAlreadySelected(selectedPlacesIndexes, placeIndex)) {
+            placeIndex = random.nextInt(mFamousPlacesInfo.length());
+        }
+        selectedPlacesIndexes.add(placeIndex);
+
+        LatLng placeLatLng = null;
+        try {
+            JSONArray place = mFamousPlacesInfo.getJSONArray(placeIndex);
+            double lat = place.getDouble(0);
+            double lng = place.getDouble(1);
+            placeLatLng = new LatLng(lat, lng);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return placeLatLng;
+    }
+
     public List<LatLng> selectCities(int numberOfCities) {
         List<LatLng> cities = new ArrayList<>(numberOfCities);
         List<Integer> selectedCitiesIndexes = new ArrayList<>(numberOfCities);
@@ -58,5 +81,17 @@ public class CitySelector {
         }
 
         return cities;
+    }
+
+    public List<LatLng> selectFamousPlaces(int numberOfPlaces) {
+        List<LatLng> places = new ArrayList<>(numberOfPlaces);
+        List<Integer> selectedPlacesIndexes = new ArrayList<>(numberOfPlaces);
+
+        for (int i = 0; i < numberOfPlaces; i++) {
+            LatLng place = getRandomFamousPlace(selectedPlacesIndexes);
+            places.add(place);
+        }
+
+        return places;
     }
 }

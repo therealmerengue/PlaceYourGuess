@@ -196,8 +196,9 @@ public class LocationSelector {
 
     private int getRadius(LatLng southWest, LatLng northEast) {
         float distanceAcrossBounds = Calculator.measureDistance(southWest, northEast);
-
-        if (distanceAcrossBounds > 1000000) //m
+        if (distanceAcrossBounds > 5000000)
+            return 25000;
+        else if (distanceAcrossBounds > 1000000) //m
             return 10000; //m
         else if (distanceAcrossBounds > 25000)
             return 1000;

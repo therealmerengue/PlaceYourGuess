@@ -12,7 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/txt_joinedRoomName"
-        android:text="Room: "
+        android:text="@string/room"
         android:layout_gravity="center"
         android:fontFamily="sans-serif-smallcaps"
         android:textColor="#fff"
@@ -23,7 +23,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/btn_leaveRoom"
-        android:text="Leave room"
+        android:text="@string/leave_room"
         android:backgroundTint="@color/colorPrimaryDark"
         android:textColor="#fff"
         android:layout_gravity="center"/>
@@ -37,7 +37,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Players:"
+            android:text="@string/players"
             android:textColor="#fff"
             android:fontFamily="sans-serif-smallcaps"
             android:textSize="20dp"
@@ -62,7 +62,7 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/btn_startMultiplayerGame"
                 android:layout_weight=".5"
-                android:text="Start game"
+                android:text="@string/start_game_btn"
                 android:textColor="#fff"
                 android:backgroundTint="@color/colorPrimaryDark"/>
 
@@ -71,7 +71,7 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/btn_changeSettings"
                 android:layout_weight=".5"
-                android:text="Game settings"
+                android:text="@string/game_settings"
                 android:textColor="#fff"
                 android:backgroundTint="@color/colorPrimaryDark"/>
 
