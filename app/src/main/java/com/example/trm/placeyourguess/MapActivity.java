@@ -50,7 +50,6 @@ public class MapActivity extends AppCompatActivity {
     private Button mBtnNextLocation;
 
     private CountDownTimer mRoundTimer;
-    private long mTimerValue;
     private boolean mGuessMade = false;
     private boolean mGuessConfirmed = false;
     private boolean mHintsEnabled = false;
@@ -58,18 +57,21 @@ public class MapActivity extends AppCompatActivity {
 
     //activity result variable keys
     final static String RESULT_KEY_SCORE = "SCORE";
+    final static String RESULT_GUESSED_MARKER_LOCATION = "RESULT_GUESSED_MARKER_LOCATION";
 
     //SaveInstanceState variable keys
-    private final static String KEY_SAVED_STATE_TIMER_VALUE = "TIMER";
     private final static String KEY_SAVED_STATE_PASSED_LAT = "PASSED_LAT";
     private final static String KEY_SAVED_STATE_PASSED_LNG = "PASSED_LNG";
     private final static String KEY_SAVED_STATE_HINTS_ENABLED = "HINTS_ENABLED";
+    private final static String KEY_SAVED_STATE_PASSED_TIME_LEFT = "KEY_SAVED_STATE_PASSED_TIME_LEFT";
+    private final static String KEY_SAVED_STATE_GUESSED_LAT = "KEY_SAVED_STATE_GUESSED_LAT";
+    private final static String KEY_SAVED_STATE_GUESSED_LNG = "KEY_SAVED_STATE_GUESSED_LNG";
 
     private float mGuessOffset;
     private long mPassedTimeLeft;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
 
@@ -164,6 +166,7 @@ public class MapActivity extends AppCompatActivity {
                 intent.putExtras(resultData);
 
                 setResult(RESULT_OK, intent);
+
                 if (mRoundTimer != null) {
                     mRoundTimer.cancel();
                 }
@@ -175,7 +178,7 @@ public class MapActivity extends AppCompatActivity {
         if (savedInstanceState == null) {
             mPassedTimeLeft = intent.getLongExtra(StreetViewActivity.EXTRA_TIMER_LEFT, -1);
         } else {
-            mPassedTimeLeft = savedInstanceState.getLong(KEY_SAVED_STATE_TIMER_VALUE);
+            mPassedTimeLeft = savedInstanceState.getLong(KEY_SAVED_STATE_PASSED_TIME_LEFT);
         }
         initTimer();
 
@@ -190,7 +193,22 @@ public class MapActivity extends AppCompatActivity {
                 settings.setRotateGesturesEnabled(false);
                 settings.setIndoorLevelPickerEnabled(false);
 
-                if (mPassedTimeLeft == 0) {
+                if (savedInstanceState != null && savedInstanceState.containsKey(KEY_SAVED_STATE_GUESSED_LAT)) {
+                    LatLng position = new LatLng(savedInstanceState.getDouble(KEY_SAVED_STATE_GUESSED_LAT),
+                            savedInstanceState.getDouble(KEY_SAVED_STATE_GUESSED_LNG));
+                    mGuessedLocationMarker = mMap.addMarker(new MarkerOptions().position(position));
+                    mBtnConfirm.setEnabled(true);
+                } else if (savedInstanceState == null) {
+                    Intent intent = getIntent();
+                    if (intent.hasExtra(StreetViewActivity.EXTRA_PREVIOUSLY_PLACED_MARKER)) {
+                        double[] positionArray = intent.getDoubleArrayExtra(StreetViewActivity.EXTRA_PREVIOUSLY_PLACED_MARKER);
+                        LatLng position = new LatLng(positionArray[0], positionArray[1]);
+                        mGuessedLocationMarker = mMap.addMarker(new MarkerOptions().position(position));
+                        mBtnConfirm.setEnabled(true);
+                    }
+                }
+
+                if (mPassedTimeLeft == 0 && mPassedTimeLeft != -1) {
                     showResultOnMap();
                 } else {
                     mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
@@ -222,10 +240,16 @@ public class MapActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putLong(KEY_SAVED_STATE_TIMER_VALUE, mTimerValue);
+        outState.putLong(KEY_SAVED_STATE_PASSED_TIME_LEFT, mPassedTimeLeft);
 
         outState.putDouble(KEY_SAVED_STATE_PASSED_LAT, mPassedLocationCoords.latitude);
         outState.putDouble(KEY_SAVED_STATE_PASSED_LNG, mPassedLocationCoords.longitude);
+
+        if (mGuessedLocationMarker != null) {
+            LatLng position = mGuessedLocationMarker.getPosition();
+            outState.putDouble(KEY_SAVED_STATE_GUESSED_LAT, position.latitude);
+            outState.putDouble(KEY_SAVED_STATE_GUESSED_LNG, position.longitude);
+        }
 
         outState.putBoolean(KEY_SAVED_STATE_HINTS_ENABLED, mHintsEnabled);
     }
@@ -234,6 +258,18 @@ public class MapActivity extends AppCompatActivity {
     public void onBackPressed() {
         if (mGuessMade) {
             mBtnNextLocation.callOnClick();
+        } else if (mGuessedLocationMarker != null) {
+            Bundle resultData = new Bundle();
+            LatLng position = mGuessedLocationMarker.getPosition();
+            double[] positionArray = new double[2];
+            positionArray[0] = position.latitude;
+            positionArray[1] = position.longitude;
+            resultData.putDoubleArray(RESULT_GUESSED_MARKER_LOCATION, positionArray);
+
+            Intent intent = new Intent();
+            intent.putExtras(resultData);
+            setResult(RESULT_CANCELED, intent);
+            finish();
         } else {
             super.onBackPressed();
         }
@@ -300,7 +336,6 @@ public class MapActivity extends AppCompatActivity {
                     @Override
                     public void onTick(long millisUntilFinished) {
                         mTxtRoundTimer.setText(Long.toString(millisUntilFinished / 1000));
-                        mTimerValue = millisUntilFinished / 1000;
                     }
 
                     @Override

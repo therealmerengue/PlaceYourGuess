@@ -17,6 +17,8 @@ import com.google.android.gms.maps.SupportStreetViewPanoramaFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.StreetViewPanoramaLocation;
 
+import java.util.Map;
+
 public class StreetViewActivity extends AppCompatActivity {
 
     private FloatingActionButton mBtnSwitchToMap;
@@ -39,6 +41,7 @@ public class StreetViewActivity extends AppCompatActivity {
     private int mNumberOfRounds;
     private double[] mLatitudes;
     private double[] mLongitudes;
+    private double[] mPreviouslyPlacedMarkerPosition; //to save placed marker position if user comes back from MapActivity
 
     //multiplayer variables
     private boolean mIsSingleplayer = true;
@@ -48,6 +51,7 @@ public class StreetViewActivity extends AppCompatActivity {
     static final String EXTRA_LOCATION_COORDINATES = "EXTRA_LOCATION_COORDINATES";
     static final String EXTRA_TIMER_LEFT = "EXTRA_TIMER_LEFT";
     static final String EXTRA_HINTS_ENABLED = "EXTRA_HINTS_ENABLED";
+    static final String EXTRA_PREVIOUSLY_PLACED_MARKER = "EXTRA_PREVIOUSLY_PLACED_MARKER";
 
     //startActivity request codes
     static final int REQ_MAP_ACTIVITY = 100;
@@ -184,11 +188,13 @@ public class StreetViewActivity extends AppCompatActivity {
                     Bundle mapActivityResult = data.getExtras();
                     int score = mapActivityResult.getInt(MapActivity.RESULT_KEY_SCORE);
                     mTotalScore += score;
+                    mPreviouslyPlacedMarkerPosition = null;
 
                     if (mRoundNumber <= mNumberOfRounds) {
                         updateScoreTextview();
                         LatLng panoramaPosition = new LatLng(mLatitudes[mRoundNumber - 1], mLongitudes[mRoundNumber - 1]);
-                        mStreetViewPanorama.setPosition(panoramaPosition);
+                        if (mStreetViewPanorama != null)
+                            mStreetViewPanorama.setPosition(panoramaPosition);
                         updateRoundsLeftTextview();
                         setupCountDownTimer(true);
                     } else {
@@ -199,6 +205,13 @@ public class StreetViewActivity extends AppCompatActivity {
                         setResult(RESULT_OK, intent);
 
                         finish();
+                    }
+                } else if (resultCode == RESULT_CANCELED) {
+                    if (data != null) {
+                        Bundle result = data.getExtras();
+                        if (result.containsKey(MapActivity.RESULT_GUESSED_MARKER_LOCATION)) {
+                            mPreviouslyPlacedMarkerPosition = result.getDoubleArray(MapActivity.RESULT_GUESSED_MARKER_LOCATION);
+                        }
                     }
                 }
                 break;
@@ -323,6 +336,10 @@ public class StreetViewActivity extends AppCompatActivity {
 
         if (!mIsSingleplayer) {
             intent.putExtra(EXTRA_HINTS_ENABLED, mHintsEnabled);
+        }
+
+        if (mPreviouslyPlacedMarkerPosition != null) {
+            intent.putExtra(EXTRA_PREVIOUSLY_PLACED_MARKER, mPreviouslyPlacedMarkerPosition);
         }
 
         startActivityForResult(intent, REQ_MAP_ACTIVITY);
