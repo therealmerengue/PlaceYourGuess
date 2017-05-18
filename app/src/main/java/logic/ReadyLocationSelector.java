@@ -29,38 +29,17 @@ public class ReadyLocationSelector {
         return false;
     }
 
-    private LatLng getRandomCity(List<Integer> selectedCitiesIndexes) {
+    private LatLng getRandomPlace(JSONArray places, List<Integer> selectedIndexes) {
         Random random = new Random(System.currentTimeMillis());
-        int cityIndex = random.nextInt(mCitiesInfo.length());
-        while (isAlreadySelected(selectedCitiesIndexes, cityIndex)) {
-            cityIndex = random.nextInt(mCitiesInfo.length());
+        int placeIndex = random.nextInt(places.length());
+        while (isAlreadySelected(selectedIndexes, placeIndex)) {
+            placeIndex = random.nextInt(places.length());
         }
-        selectedCitiesIndexes.add(cityIndex);
-
-        LatLng cityLatLng = null;
-        try {
-            JSONArray city = mCitiesInfo.getJSONArray(cityIndex);
-            double lat = city.getDouble(0);
-            double lng = city.getDouble(1);
-            cityLatLng = new LatLng(lat, lng);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        return cityLatLng;
-    }
-
-    private LatLng getRandomFamousPlace(List<Integer> selectedPlacesIndexes) {
-        Random random = new Random(System.currentTimeMillis());
-        int placeIndex = random.nextInt(mFamousPlacesInfo.length());
-        while (isAlreadySelected(selectedPlacesIndexes, placeIndex)) {
-            placeIndex = random.nextInt(mFamousPlacesInfo.length());
-        }
-        selectedPlacesIndexes.add(placeIndex);
+        selectedIndexes.add(placeIndex);
 
         LatLng placeLatLng = null;
         try {
-            JSONArray place = mFamousPlacesInfo.getJSONArray(placeIndex);
+            JSONArray place = places.getJSONArray(placeIndex);
             double lat = place.getDouble(0);
             double lng = place.getDouble(1);
             placeLatLng = new LatLng(lat, lng);
@@ -71,24 +50,24 @@ public class ReadyLocationSelector {
         return placeLatLng;
     }
 
-    public List<LatLng> selectCities(int numberOfCities) {
-        List<LatLng> cities = new ArrayList<>(numberOfCities);
-        List<Integer> selectedCitiesIndexes = new ArrayList<>(numberOfCities);
-
-        for (int i = 0; i < numberOfCities; i++) {
-            LatLng city = getRandomCity(selectedCitiesIndexes);
-            cities.add(city);
-        }
-
-        return cities;
-    }
-
-    public List<LatLng> selectFamousPlaces(int numberOfPlaces) {
+    public List<LatLng> selectPlaces(int numberOfPlaces, int mode) { //0 - cities, 1 - famous places
         List<LatLng> places = new ArrayList<>(numberOfPlaces);
         List<Integer> selectedPlacesIndexes = new ArrayList<>(numberOfPlaces);
 
+        JSONArray placesToSelectFrom = new JSONArray();
+        switch (mode) {
+            case 0:
+                placesToSelectFrom = mCitiesInfo;
+                break;
+            case 1:
+                placesToSelectFrom = mFamousPlacesInfo;
+                break;
+            default:
+                break;
+        }
+
         for (int i = 0; i < numberOfPlaces; i++) {
-            LatLng place = getRandomFamousPlace(selectedPlacesIndexes);
+            LatLng place = getRandomPlace(placesToSelectFrom, selectedPlacesIndexes);
             places.add(place);
         }
 

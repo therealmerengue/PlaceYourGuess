@@ -1,5 +1,6 @@
 package com.example.trm.placeyourguess;
 
+import android.app.ProgressDialog;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
@@ -30,6 +31,7 @@ public class MultiplayerRoomActivity extends AppCompatActivity {
     private Button mBtnStartGame;
     private ListView mLvPlayers;
     private LinearLayout mLayoutHostControls;
+    private ProgressDialog mProgressDialog;
 
     private PlayerListAdapter mPlayerListAdapter;
     private static String mPlayerName;
@@ -44,6 +46,7 @@ public class MultiplayerRoomActivity extends AppCompatActivity {
     static final String EXTRA_NICKNAME = "EXTRA_NICKNAME";
 
     static final int REQ_STREET_VIEW_ACTIVITY = 101;
+    static final int REQ_LOCATION_LIST_ACTIVITY = 102;
 
     private static Socket mSocket;
 
@@ -162,6 +165,8 @@ public class MultiplayerRoomActivity extends AppCompatActivity {
             intent.putExtra(LocationListActivity.EXTRA_LATITUDES, latitudes);
             intent.putExtra(LocationListActivity.EXTRA_LONGITUDES, longitudes);
 
+            dismissProgressDialog();
+
             startActivityForResult(intent, REQ_STREET_VIEW_ACTIVITY);
         }
     };
@@ -181,6 +186,21 @@ public class MultiplayerRoomActivity extends AppCompatActivity {
         }
     };
 
+    private Emitter.Listener onDisconnectListener = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    dismissProgressDialog();
+                    Toast.makeText(MultiplayerRoomActivity.this, "Disconnected from server", Toast.LENGTH_LONG).show();
+                }
+            });
+
+            finish();
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -194,7 +214,8 @@ public class MultiplayerRoomActivity extends AppCompatActivity {
             .on(EVENT_NOMINATE_HOST, onNominateHostListener)
             .on(EVENT_ROOM_NOT_EXISTS, onRoomNotExistsListener)
             .on(EVENT_START_MULTIPLAYER_GAME, onStartMultiplayerGame)
-            .on(EVENT_NICKNAME_ALREADY_TAKEN, onNicknameAlreadyTakenListener);
+            .on(EVENT_NICKNAME_ALREADY_TAKEN, onNicknameAlreadyTakenListener)
+            .on(Socket.EVENT_DISCONNECT, onDisconnectListener);
 
         Intent intent = getIntent();
         mRoomName = intent.getStringExtra(MultiplayerNewRoomActivity.EXTRA_ROOM_NAME);
@@ -232,7 +253,7 @@ public class MultiplayerRoomActivity extends AppCompatActivity {
                     Intent intent = new Intent(MultiplayerRoomActivity.this, LocationListActivity.class);
                     intent.putExtra(MainActivity.EXTRA_IS_SINGLEPLAYER, false);
                     intent.putExtra(EXTRA_IS_HOST, mIsHost);
-                    startActivity(intent);
+                    startActivityForResult(intent, REQ_LOCATION_LIST_ACTIVITY);
                 } else {
                     Toast.makeText(MultiplayerRoomActivity.this, "Minimum 2 players required to start the game.", Toast.LENGTH_LONG).show();
                 }
@@ -279,6 +300,12 @@ public class MultiplayerRoomActivity extends AppCompatActivity {
                     startActivity(intent);
                 }
                 break;
+
+            case REQ_LOCATION_LIST_ACTIVITY:
+                if (resultCode == RESULT_OK) {
+                    showProgressDialog();
+                }
+                break;
         }
     }
 
@@ -291,7 +318,8 @@ public class MultiplayerRoomActivity extends AppCompatActivity {
             .off(EVENT_NOMINATE_HOST, onNominateHostListener)
             .off(EVENT_ROOM_NOT_EXISTS, onRoomNotExistsListener)
             .off(EVENT_START_MULTIPLAYER_GAME, onStartMultiplayerGame)
-            .off(EVENT_NICKNAME_ALREADY_TAKEN, onNicknameAlreadyTakenListener);
+            .off(EVENT_NICKNAME_ALREADY_TAKEN, onNicknameAlreadyTakenListener)
+            .off(Socket.EVENT_DISCONNECT, onDisconnectListener);
     }
 
     @Override
@@ -299,6 +327,18 @@ public class MultiplayerRoomActivity extends AppCompatActivity {
         emitLeaveRoom();
         stopService(new Intent(MultiplayerRoomActivity.this, OnClearFromRecentService.class));
         super.onBackPressed();
+    }
+
+    private void showProgressDialog() {
+        mProgressDialog = new ProgressDialog(this);
+        mProgressDialog.setTitle("Loading locations...");
+        mProgressDialog.setMessage("Please wait");
+        mProgressDialog.show();
+    }
+
+    private void dismissProgressDialog() {
+        if (mProgressDialog != null && mProgressDialog.isShowing())
+            mProgressDialog.dismiss();
     }
 
     private static void emitLeaveRoom() {

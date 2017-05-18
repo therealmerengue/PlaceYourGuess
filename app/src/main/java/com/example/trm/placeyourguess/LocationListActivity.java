@@ -1,5 +1,7 @@
 package com.example.trm.placeyourguess;
 
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -27,11 +29,15 @@ import io.socket.emitter.Emitter;
 import logic.ReadyLocationSelector;
 import logic.LocationSelector;
 
+import static com.example.trm.placeyourguess.CustomLocationActivity.RESULT_KEY_LATITUDE_BOUNDS;
+import static com.example.trm.placeyourguess.CustomLocationActivity.RESULT_KEY_LONGITUDE_BOUNDS;
 import static io.socket.client.Socket.EVENT_CONNECT;
 
 public class LocationListActivity extends AppCompatActivity {
 
     private ListView mListviewCountries;
+
+    private ProgressDialog mProgressDialog;
 
     private boolean mIsSingleplayer = true;
     private boolean mIsConnected = false;
@@ -52,6 +58,13 @@ public class LocationListActivity extends AppCompatActivity {
         @Override
         public void call(Object... args) {
             mIsConnected = false;
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    dismissProgressDialog();
+                }
+            });
         }
     };
     private Emitter.Listener onConnectErrorListener = new Emitter.Listener() {
@@ -151,18 +164,19 @@ public class LocationListActivity extends AppCompatActivity {
                             e.printStackTrace();
                         }
 
-
                         mSocket.emit("loadReadyLocations", settings);
+                        showProgressDialog();
                         Log.e("loadLocations", "host emits load city locations");
 
+                        setResult(RESULT_OK);
                         finish();
                     } else {
                         ReadyLocationSelector selector = new ReadyLocationSelector();
                         List<LatLng> locations;
                         if (position == 2)
-                            locations = selector.selectCities(mNumOfRounds);
+                            locations = selector.selectPlaces(mNumOfRounds, 0);
                         else
-                            locations = selector.selectFamousPlaces(mNumOfRounds);
+                            locations = selector.selectPlaces(mNumOfRounds, 1);
 
                         double[] latitudes = new double[mNumOfRounds];
                         double[] longitudes = new double[mNumOfRounds];
@@ -191,11 +205,13 @@ public class LocationListActivity extends AppCompatActivity {
                     mSocket.emit("loadLocations", getSettings(randomCountry, selectedCountryCode, timerLimit, hintsEnabled, null));
                     Log.e("loadLocations", "host emits load locations");
 
+                    setResult(RESULT_OK);
                     finish();
                 } else {
                     if (mIsConnected) { //SINGLEPLAYER
                         //get locations from socket
                         mSocket.emit("loadLocations", getSettings(randomCountry, selectedCountryCode, -1, false, null));
+                        showProgressDialog();
                     } else {
                         //load locations on phone
                         LocationSelector selector = new LocationSelector(LocationListActivity.this, mStartGameIntent, mNumOfRounds, randomCountry, selectedCountryCode);
@@ -237,8 +253,8 @@ public class LocationListActivity extends AppCompatActivity {
             case REQ_CUSTOM_LOCATION_ACTIVITY:
                 if (data != null) {
                     Bundle resultData = data.getExtras();
-                    double[] latitudeBounds = resultData.getDoubleArray(CustomLocationActivity.RESULT_KEY_LATITUDE_BOUNDS);
-                    double[] longitudeBounds = resultData.getDoubleArray(CustomLocationActivity.RESULT_KEY_LONGITUDE_BOUNDS);
+                    double[] latitudeBounds = resultData.getDoubleArray(RESULT_KEY_LATITUDE_BOUNDS);
+                    double[] longitudeBounds = resultData.getDoubleArray(RESULT_KEY_LONGITUDE_BOUNDS);
 
                     Pair<LatLng, LatLng> bounds = new Pair<>(new LatLng(latitudeBounds[0], longitudeBounds[0]),
                             new LatLng(latitudeBounds[1], longitudeBounds[1]));
@@ -255,11 +271,13 @@ public class LocationListActivity extends AppCompatActivity {
                         mSocket.emit("loadLocations", getSettings(false, countryCode, timerLimit, hintsEnabled, bounds));
                         Log.e("loadLocations", "host emits load locations");
 
+                        setResult(RESULT_OK);
                         finish();
                     } else {
                         if (mIsConnected) { //SINGLEPLAYER
                             //get locations from socket
                             mSocket.emit("loadLocations", getSettings(false, countryCode, -1, false, bounds));
+                            showProgressDialog();
                         } else {
                             //load locations on phone
                             LocationSelector selector = new LocationSelector(LocationListActivity.this, mStartGameIntent, mNumOfRounds, false, countryCode);
@@ -312,5 +330,17 @@ public class LocationListActivity extends AppCompatActivity {
         }
 
         return settings;
+    }
+
+    private void showProgressDialog() {
+        mProgressDialog = new ProgressDialog(this);
+        mProgressDialog.setTitle("Loading locations...");
+        mProgressDialog.setMessage("Please wait");
+        mProgressDialog.show();
+    }
+
+    private void dismissProgressDialog() {
+        if (mProgressDialog != null && mProgressDialog.isShowing())
+            mProgressDialog.dismiss();
     }
 }

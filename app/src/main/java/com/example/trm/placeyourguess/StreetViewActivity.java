@@ -17,8 +17,6 @@ import com.google.android.gms.maps.SupportStreetViewPanoramaFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.StreetViewPanoramaLocation;
 
-import java.util.Map;
-
 public class StreetViewActivity extends AppCompatActivity {
 
     private FloatingActionButton mBtnSwitchToMap;
@@ -38,10 +36,15 @@ public class StreetViewActivity extends AppCompatActivity {
     private int mTimerLimit = -1;
     private boolean mHintsEnabled = false;
     private boolean mSwitchToMapOnTimerEnd = true;
+    private boolean mMapActivityStarted = false;
     private int mNumberOfRounds;
     private double[] mLatitudes;
     private double[] mLongitudes;
-    private double[] mPreviouslyPlacedMarkerPosition; //to save placed marker position if user comes back from MapActivity
+
+    //for centering map and placing marker if user comes back from MapActivity without making a guess
+    private double[] mPreviouslyPlacedMarkerPosition;
+    private double[] mPreviousMapCenter;
+    private float mPreviousMapZoom;
 
     //multiplayer variables
     private boolean mIsSingleplayer = true;
@@ -52,6 +55,8 @@ public class StreetViewActivity extends AppCompatActivity {
     static final String EXTRA_TIMER_LEFT = "EXTRA_TIMER_LEFT";
     static final String EXTRA_HINTS_ENABLED = "EXTRA_HINTS_ENABLED";
     static final String EXTRA_PREVIOUSLY_PLACED_MARKER = "EXTRA_PREVIOUSLY_PLACED_MARKER";
+    static final String EXTRA_PREVIOUS_MAP_CENTER = "EXTRA_PREVIOUS_MAP_CENTER";
+    static final String EXTRA_PREVIOUS_MAP_ZOOM = "EXTRA_PREVIOUS_MAP_ZOOM";
 
     //startActivity request codes
     static final int REQ_MAP_ACTIVITY = 100;
@@ -60,6 +65,7 @@ public class StreetViewActivity extends AppCompatActivity {
     static final String RESULT_KEY_SCORE = "SCORE";
 
     //SaveInstanceState variable keys
+    private final static String KEY_SAVED_STATE_MAP_ACTIVITY_STARTED = "KEY_SAVED_STATE_MAP_ACTIVITY_STARTED";
     private final static String KEY_SAVED_STATE_LOCATION_LAT = "LOCATION_LAT";
     private final static String KEY_SAVED_STATE_LOCATION_LNG = "LOCATION_LNG";
     private final static String KEY_SAVED_STATE_TIMER_VALUE = "TIMER_VALUE";
@@ -147,6 +153,8 @@ public class StreetViewActivity extends AppCompatActivity {
 
             mTotalScore = savedInstanceState.getInt(KEY_SAVED_STATE_TOTAL_SCORE);
 
+            mMapActivityStarted = savedInstanceState.getBoolean(KEY_SAVED_STATE_MAP_ACTIVITY_STARTED);
+
             setupCountDownTimer(false);
         }
 
@@ -159,22 +167,8 @@ public class StreetViewActivity extends AppCompatActivity {
         updateRoundsLeftTextview();
 
         //Street View panorama
-        SupportStreetViewPanoramaFragment streetViewPanoramaFragment =
-                (SupportStreetViewPanoramaFragment) getSupportFragmentManager().findFragmentById(R.id.frag_streetview);
-        streetViewPanoramaFragment.getStreetViewPanoramaAsync(new OnStreetViewPanoramaReadyCallback() {
-                @Override
-                public void onStreetViewPanoramaReady(final StreetViewPanorama panorama) {
-                    mStreetViewPanorama = panorama;
-
-                    mStreetViewPanorama.setStreetNamesEnabled(false);
-                    mStreetViewPanorama.setUserNavigationEnabled(true);
-                    mStreetViewPanorama.setZoomGesturesEnabled(true);
-                    mStreetViewPanorama.setPanningGesturesEnabled(true);
-
-                    LatLng panoramaPosition = new LatLng(mLatitudes[mRoundNumber - 1], mLongitudes[mRoundNumber - 1]);
-                    mStreetViewPanorama.setPosition(panoramaPosition);
-                }
-            });
+        if (!mMapActivityStarted)
+            initPanoramaFragment();
     }
 
     @Override
@@ -188,13 +182,15 @@ public class StreetViewActivity extends AppCompatActivity {
                     Bundle mapActivityResult = data.getExtras();
                     int score = mapActivityResult.getInt(MapActivity.RESULT_KEY_SCORE);
                     mTotalScore += score;
+
                     mPreviouslyPlacedMarkerPosition = null;
+                    mPreviousMapCenter = null;
+                    mPreviousMapZoom = 1f;
 
                     if (mRoundNumber <= mNumberOfRounds) {
                         updateScoreTextview();
-                        LatLng panoramaPosition = new LatLng(mLatitudes[mRoundNumber - 1], mLongitudes[mRoundNumber - 1]);
-                        if (mStreetViewPanorama != null)
-                            mStreetViewPanorama.setPosition(panoramaPosition);
+                        initPanoramaFragment();
+                        mMapActivityStarted = false;
                         updateRoundsLeftTextview();
                         setupCountDownTimer(true);
                     } else {
@@ -207,12 +203,18 @@ public class StreetViewActivity extends AppCompatActivity {
                         finish();
                     }
                 } else if (resultCode == RESULT_CANCELED) {
+                    initPanoramaFragment();
+                    mMapActivityStarted = false;
                     if (data != null) {
                         Bundle result = data.getExtras();
+                        mPreviousMapZoom = result.getFloat(MapActivity.RESULT_CURRENT_ZOOM);
                         if (result.containsKey(MapActivity.RESULT_GUESSED_MARKER_LOCATION)) {
                             mPreviouslyPlacedMarkerPosition = result.getDoubleArray(MapActivity.RESULT_GUESSED_MARKER_LOCATION);
+                        } else if (result.containsKey(MapActivity.RESULT_CURRENT_CENTER)) {
+                            mPreviousMapCenter = result.getDoubleArray(MapActivity.RESULT_CURRENT_CENTER);
                         }
                     }
+                    setupCountDownTimer(false);
                 }
                 break;
 
@@ -268,12 +270,33 @@ public class StreetViewActivity extends AppCompatActivity {
         //location latlngs
         outState.putDoubleArray(KEY_SAVED_STATE_LATITUDES, mLatitudes);
         outState.putDoubleArray(KEY_SAVED_STATE_LONGITUDES, mLongitudes);
+
+        outState.putBoolean(KEY_SAVED_STATE_MAP_ACTIVITY_STARTED, mMapActivityStarted);
     }
 
     @Override
     public void onBackPressed() {
         QuitGameDialogFragment quitGameDialogFragment = new QuitGameDialogFragment();
         quitGameDialogFragment.show(getSupportFragmentManager(), "TAG_QUIT_FRAGMENT");
+    }
+
+    private void initPanoramaFragment() {
+        SupportStreetViewPanoramaFragment streetViewPanoramaFragment =
+                (SupportStreetViewPanoramaFragment) getSupportFragmentManager().findFragmentById(R.id.frag_streetview);
+        streetViewPanoramaFragment.getStreetViewPanoramaAsync(new OnStreetViewPanoramaReadyCallback() {
+            @Override
+            public void onStreetViewPanoramaReady(final StreetViewPanorama panorama) {
+                mStreetViewPanorama = panorama;
+
+                mStreetViewPanorama.setStreetNamesEnabled(false);
+                mStreetViewPanorama.setUserNavigationEnabled(true);
+                mStreetViewPanorama.setZoomGesturesEnabled(true);
+                mStreetViewPanorama.setPanningGesturesEnabled(true);
+
+                LatLng panoramaPosition = new LatLng(mLatitudes[mRoundNumber - 1], mLongitudes[mRoundNumber - 1]);
+                mStreetViewPanorama.setPosition(panoramaPosition);
+            }
+        });
     }
 
     private void updateScoreTextview() {
@@ -340,7 +363,15 @@ public class StreetViewActivity extends AppCompatActivity {
 
         if (mPreviouslyPlacedMarkerPosition != null) {
             intent.putExtra(EXTRA_PREVIOUSLY_PLACED_MARKER, mPreviouslyPlacedMarkerPosition);
+            intent.putExtra(EXTRA_PREVIOUS_MAP_ZOOM, mPreviousMapZoom);
         }
+
+        if (mPreviousMapCenter != null) {
+            intent.putExtra(EXTRA_PREVIOUS_MAP_CENTER, mPreviousMapCenter);
+            intent.putExtra(EXTRA_PREVIOUS_MAP_ZOOM, mPreviousMapZoom);
+        }
+
+        mMapActivityStarted = true;
 
         startActivityForResult(intent, REQ_MAP_ACTIVITY);
     }

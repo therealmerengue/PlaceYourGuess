@@ -3,6 +3,7 @@ package com.example.trm.placeyourguess;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -11,6 +12,9 @@ import android.widget.Button;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketAddress;
 
 import holders.LocationInfoHolder;
 
@@ -33,13 +37,7 @@ public class MainActivity extends AppCompatActivity {
         mBtnSingleplayer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isOnline()) {
-                    Intent intent = new Intent(MainActivity.this, LocationListActivity.class);
-                    intent.putExtra(EXTRA_IS_SINGLEPLAYER, true);
-                    startActivity(intent);
-                } else {
-                    showNoInternetAlertDialog("No internet connection", "Connect to the Internet to play the game.");
-                }
+                new IsOnlineTask().execute(0);
             }
         });
 
@@ -47,12 +45,7 @@ public class MainActivity extends AppCompatActivity {
         mBtnMultiplayer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isOnline()) {
-                    Intent intent = new Intent(MainActivity.this, MultiplayerRoomsActivity.class);
-                    startActivity(intent);
-                } else {
-                    showNoInternetAlertDialog("No internet connection", "Connect to the Internet to play the game.");
-                }
+                new IsOnlineTask().execute(1);
             }
         });
 
@@ -87,30 +80,63 @@ public class MainActivity extends AppCompatActivity {
         holder.loadFamousPlaces(famousStream);
     }
 
-    private boolean isOnline() {
-        Runtime runtime = Runtime.getRuntime();
-        try {
-            Process ipProcess = runtime.exec("/system/bin/ping -c 1 8.8.8.8");
-            int exitValue = ipProcess.waitFor();
-            return exitValue == 0;
-        }
-        catch (IOException | InterruptedException e) {
-            e.printStackTrace();
+    class IsOnlineTask extends AsyncTask<Integer, Void, Boolean> {
+        private int gameMode; //0 - SINGLE, 1 - MULTI
+
+        private void showNoInternetAlertDialog(String title, String message) {
+            AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+            alertDialog.setTitle(title);
+            alertDialog.setMessage(message);
+            alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    });
+            alertDialog.show();
         }
 
-        return false;
-    }
+        private boolean checkConnection() {
+            try {
+                int timeoutMs = 1500;
 
-    private void showNoInternetAlertDialog(String title, String message) {
-        AlertDialog alertDialog = new AlertDialog.Builder(this).create();
-        alertDialog.setTitle(title);
-        alertDialog.setMessage(message);
-        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                });
-        alertDialog.show();
+                Socket sock = new Socket();
+                SocketAddress sockaddr = new InetSocketAddress("8.8.8.8", 53);
+
+                sock.connect(sockaddr, timeoutMs);
+                sock.close();
+
+                return true;
+            } catch (IOException e) { return false; }
+        }
+
+        @Override
+        protected Boolean doInBackground(Integer... params) {
+            gameMode = params[0];
+            return checkConnection();
+        }
+
+        @Override
+        protected void onPostExecute(Boolean isOnline) {
+            super.onPostExecute(isOnline);
+
+            if (isOnline) {
+                switch (gameMode) {
+                    case 0:
+                        Intent singleIntent = new Intent(MainActivity.this, LocationListActivity.class);
+                        singleIntent.putExtra(EXTRA_IS_SINGLEPLAYER, true);
+                        startActivity(singleIntent);
+                        break;
+                    case 1:
+                        Intent multiIntent = new Intent(MainActivity.this, MultiplayerRoomsActivity.class);
+                        startActivity(multiIntent);
+                        break;
+                    default:
+                        break;
+                }
+            } else {
+                showNoInternetAlertDialog("No internet connection", "Connect to the Internet to play the game.");
+            }
+        }
     }
 }

@@ -14,12 +14,14 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -54,18 +56,24 @@ public class MapActivity extends AppCompatActivity {
     private boolean mGuessConfirmed = false;
     private boolean mHintsEnabled = false;
     private int mScore;
+    private float mCurrentMapZoom;
+    private double[] mCurrentMapCenter = new double[2];
 
     //activity result variable keys
     final static String RESULT_KEY_SCORE = "SCORE";
     final static String RESULT_GUESSED_MARKER_LOCATION = "RESULT_GUESSED_MARKER_LOCATION";
+    final static String RESULT_CURRENT_ZOOM = "RESULT_CURRENT_ZOOM";
+    final static String RESULT_CURRENT_CENTER = "RESULT_CURRENT_CENTER";
 
     //SaveInstanceState variable keys
     private final static String KEY_SAVED_STATE_PASSED_LAT = "PASSED_LAT";
     private final static String KEY_SAVED_STATE_PASSED_LNG = "PASSED_LNG";
+    private final static String KEY_SAVED_STATE_GUESSED_CONFIRMED = "KEY_SAVED_STATE_GUESSED_CONFIRMED";
     private final static String KEY_SAVED_STATE_HINTS_ENABLED = "HINTS_ENABLED";
     private final static String KEY_SAVED_STATE_PASSED_TIME_LEFT = "KEY_SAVED_STATE_PASSED_TIME_LEFT";
-    private final static String KEY_SAVED_STATE_GUESSED_LAT = "KEY_SAVED_STATE_GUESSED_LAT";
-    private final static String KEY_SAVED_STATE_GUESSED_LNG = "KEY_SAVED_STATE_GUESSED_LNG";
+    private final static String KEY_SAVED_STATE_GUESSED_LOCATION = "KEY_SAVED_STATE_GUESSED_LOCATION";
+    private final static String KEY_SAVED_STATE_CURRENT_ZOOM = "KEY_SAVED_STATE_CURRENT_ZOOM";
+    private final static String KEY_SAVED_STATE_CURRENT_CENTER = "KEY_SAVED_STATE_CURRENT_CENTER";
 
     private float mGuessOffset;
     private long mPassedTimeLeft;
@@ -91,6 +99,8 @@ public class MapActivity extends AppCompatActivity {
             passedCoords[1] = savedInstanceState.getDouble(KEY_SAVED_STATE_PASSED_LNG);
 
             mHintsEnabled = savedInstanceState.getBoolean(KEY_SAVED_STATE_HINTS_ENABLED);
+
+            mGuessConfirmed = savedInstanceState.getBoolean(KEY_SAVED_STATE_GUESSED_CONFIRMED);
         }
         mPassedLocationCoords = new LatLng(passedCoords[0], passedCoords[1]);
 
@@ -193,18 +203,40 @@ public class MapActivity extends AppCompatActivity {
                 settings.setRotateGesturesEnabled(false);
                 settings.setIndoorLevelPickerEnabled(false);
 
-                if (savedInstanceState != null && savedInstanceState.containsKey(KEY_SAVED_STATE_GUESSED_LAT)) {
-                    LatLng position = new LatLng(savedInstanceState.getDouble(KEY_SAVED_STATE_GUESSED_LAT),
-                            savedInstanceState.getDouble(KEY_SAVED_STATE_GUESSED_LNG));
-                    mGuessedLocationMarker = mMap.addMarker(new MarkerOptions().position(position));
-                    mBtnConfirm.setEnabled(true);
-                } else if (savedInstanceState == null) {
-                    Intent intent = getIntent();
-                    if (intent.hasExtra(StreetViewActivity.EXTRA_PREVIOUSLY_PLACED_MARKER)) {
-                        double[] positionArray = intent.getDoubleArrayExtra(StreetViewActivity.EXTRA_PREVIOUSLY_PLACED_MARKER);
-                        LatLng position = new LatLng(positionArray[0], positionArray[1]);
+                if (savedInstanceState != null) {
+                    mCurrentMapZoom = savedInstanceState.getFloat(KEY_SAVED_STATE_CURRENT_ZOOM);
+
+                    if (savedInstanceState.containsKey(KEY_SAVED_STATE_GUESSED_LOCATION)) {
+                        double[] guessedLocation = savedInstanceState.getDoubleArray(KEY_SAVED_STATE_GUESSED_LOCATION);
+                        LatLng position = new LatLng(guessedLocation[0], guessedLocation[1]);
                         mGuessedLocationMarker = mMap.addMarker(new MarkerOptions().position(position));
+
+                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, mCurrentMapZoom));
                         mBtnConfirm.setEnabled(true);
+                    } else {
+                        mCurrentMapCenter = savedInstanceState.getDoubleArray(KEY_SAVED_STATE_CURRENT_CENTER);
+                        LatLng position = new LatLng(mCurrentMapCenter[0], mCurrentMapCenter[1]);
+                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, mCurrentMapZoom));
+                    }
+
+                    if (mGuessConfirmed) {
+                        mBtnConfirm.callOnClick();
+                    }
+
+                } else {
+                    Intent intent = getIntent();
+                    float zoom = 1f;
+                    if (intent.hasExtra(StreetViewActivity.EXTRA_PREVIOUS_MAP_ZOOM)) {
+                        zoom = intent.getFloatExtra(StreetViewActivity.EXTRA_PREVIOUS_MAP_ZOOM, 1f);
+                    }
+                    if (intent.hasExtra(StreetViewActivity.EXTRA_PREVIOUSLY_PLACED_MARKER)) {
+                        LatLng position = positionArrayToLatLng(intent.getDoubleArrayExtra(StreetViewActivity.EXTRA_PREVIOUSLY_PLACED_MARKER));
+                        mGuessedLocationMarker = mMap.addMarker(new MarkerOptions().position(position));
+                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, zoom));
+                        mBtnConfirm.setEnabled(true);
+                    } else if (intent.hasExtra(StreetViewActivity.EXTRA_PREVIOUS_MAP_CENTER)) {
+                        LatLng position = positionArrayToLatLng(intent.getDoubleArrayExtra(StreetViewActivity.EXTRA_PREVIOUS_MAP_CENTER));
+                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, zoom));
                     }
                 }
 
@@ -232,6 +264,16 @@ public class MapActivity extends AppCompatActivity {
                             return true;
                         }
                     });
+
+                    mMap.setOnCameraMoveListener(new GoogleMap.OnCameraMoveListener() {
+                        @Override
+                        public void onCameraMove() {
+                            mCurrentMapZoom = mMap.getCameraPosition().zoom;
+                            LatLng mapCenter = mMap.getCameraPosition().target;
+                            mCurrentMapCenter[0] = mapCenter.latitude;
+                            mCurrentMapCenter[1] = mapCenter.longitude;
+                        }
+                    });
                 }
             }
         });
@@ -242,13 +284,20 @@ public class MapActivity extends AppCompatActivity {
         super.onSaveInstanceState(outState);
         outState.putLong(KEY_SAVED_STATE_PASSED_TIME_LEFT, mPassedTimeLeft);
 
+        outState.putBoolean(KEY_SAVED_STATE_GUESSED_CONFIRMED, mGuessConfirmed);
+
         outState.putDouble(KEY_SAVED_STATE_PASSED_LAT, mPassedLocationCoords.latitude);
         outState.putDouble(KEY_SAVED_STATE_PASSED_LNG, mPassedLocationCoords.longitude);
 
+        outState.putDoubleArray(KEY_SAVED_STATE_CURRENT_CENTER, mCurrentMapCenter);
+        outState.putFloat(KEY_SAVED_STATE_CURRENT_ZOOM, mCurrentMapZoom);
+
         if (mGuessedLocationMarker != null) {
             LatLng position = mGuessedLocationMarker.getPosition();
-            outState.putDouble(KEY_SAVED_STATE_GUESSED_LAT, position.latitude);
-            outState.putDouble(KEY_SAVED_STATE_GUESSED_LNG, position.longitude);
+            double[] positionArray = new double[2];
+            positionArray[0] = position.latitude;
+            positionArray[1] = position.longitude;
+            outState.putDoubleArray(KEY_SAVED_STATE_GUESSED_LOCATION, positionArray);
         }
 
         outState.putBoolean(KEY_SAVED_STATE_HINTS_ENABLED, mHintsEnabled);
@@ -265,14 +314,22 @@ public class MapActivity extends AppCompatActivity {
             positionArray[0] = position.latitude;
             positionArray[1] = position.longitude;
             resultData.putDoubleArray(RESULT_GUESSED_MARKER_LOCATION, positionArray);
+            resultData.putFloat(RESULT_CURRENT_ZOOM, mCurrentMapZoom);
 
-            Intent intent = new Intent();
-            intent.putExtras(resultData);
-            setResult(RESULT_CANCELED, intent);
-            finish();
+            finishActivityWithNoGuess(resultData);
         } else {
-            super.onBackPressed();
+            Bundle resultData = new Bundle();
+            resultData.putDoubleArray(RESULT_CURRENT_CENTER, mCurrentMapCenter);
+            resultData.putFloat(RESULT_CURRENT_ZOOM, mCurrentMapZoom);
+            finishActivityWithNoGuess(resultData);
         }
+    }
+
+    private void finishActivityWithNoGuess(Bundle resultData) {
+        Intent intent = new Intent();
+        intent.putExtras(resultData);
+        setResult(RESULT_CANCELED, intent);
+        finish();
     }
 
     private void showResultOnMap() {
@@ -335,7 +392,8 @@ public class MapActivity extends AppCompatActivity {
                 mRoundTimer = new CountDownTimer(mPassedTimeLeft * 1000, 1000) {
                     @Override
                     public void onTick(long millisUntilFinished) {
-                        mTxtRoundTimer.setText(Long.toString(millisUntilFinished / 1000));
+                        mPassedTimeLeft = millisUntilFinished / 1000;
+                        mTxtRoundTimer.setText(Long.toString(mPassedTimeLeft));
                     }
 
                     @Override
@@ -356,4 +414,7 @@ public class MapActivity extends AppCompatActivity {
         }
     }
 
+    private LatLng positionArrayToLatLng(double[] positionArray) {
+        return new LatLng(positionArray[0], positionArray[1]);
+    }
 }
