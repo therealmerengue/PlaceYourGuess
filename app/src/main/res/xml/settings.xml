@@ -2,7 +2,7 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <SwitchPreference
         android:title="Hints"
-        android:summary="Hints will make it easier for you to guess the location, you noob."
+        android:summary="Hints will make it easier for you to guess the location."
         android:defaultValue="false"
         android:key="@string/settings_hintsEnabled"
         android:checked="false" />

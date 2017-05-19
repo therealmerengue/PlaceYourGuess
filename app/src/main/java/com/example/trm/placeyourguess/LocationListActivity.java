@@ -1,18 +1,34 @@
 package com.example.trm.placeyourguess;
 
+import android.Manifest;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.provider.Settings;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.LatLng;
 
 import org.json.JSONArray;
@@ -26,8 +42,9 @@ import holders.LocationListItemsHolder;
 import holders.SocketHolder;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
-import logic.ReadyLocationSelector;
+import logic.Calculator;
 import logic.LocationSelector;
+import logic.ReadyLocationSelector;
 
 import static com.example.trm.placeyourguess.CustomLocationActivity.RESULT_KEY_LATITUDE_BOUNDS;
 import static com.example.trm.placeyourguess.CustomLocationActivity.RESULT_KEY_LONGITUDE_BOUNDS;
@@ -44,6 +61,20 @@ public class LocationListActivity extends AppCompatActivity {
     private int mNumOfRounds;
 
     private Socket mSocket;
+
+    private GoogleApiClient mGoogleApiClient;
+    private LocationListener mLocationListener = new LocationListener() {
+        @Override
+        public void onLocationChanged(Location location) {
+            Pair<LatLng, LatLng> boundingBox = locationToBoundingBox(location, 5);
+            startGameWithCustomLocation(boundingBox);
+
+            if (mLocationProgressDialog != null && mLocationProgressDialog.isShowing())
+                mLocationProgressDialog.dismiss();
+            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+        }
+    };
+    private ProgressDialog mLocationProgressDialog;
 
     private final String EVENT_START_SINGLEPLAYER_GAME = "startSingleplayerGame";
 
@@ -62,7 +93,7 @@ public class LocationListActivity extends AppCompatActivity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    dismissProgressDialog();
+                    dismissProgressDialog(mProgressDialog);
                 }
             });
         }
@@ -103,6 +134,8 @@ public class LocationListActivity extends AppCompatActivity {
     public static final int REQ_STREET_VIEW_ACTIVITY = 101;
     static final int REQ_SCORE_SP_ACTIVITY = 102;
     static final int REQ_CUSTOM_LOCATION_ACTIVITY = 103;
+
+    static final int PERMISSION_ACCESS_FINE_LOCATION = 101;
 
     public static final String EXTRA_LATITUDES = "LATITUDES";
     public static final String EXTRA_LONGITUDES = "LONGITUDES";
@@ -193,8 +226,69 @@ public class LocationListActivity extends AppCompatActivity {
                         startActivityForResult(mStartGameIntent, LocationListActivity.REQ_STREET_VIEW_ACTIVITY);
                         return;
                     }
-                } else  { //start streetViewActivity with country code.
-                    selectedCountryCode = LocationListItemsHolder.mCountryCodes[position - 4];
+                } else if (position == 4) { //neighbourhood mode
+                    mGoogleApiClient = new GoogleApiClient.Builder(LocationListActivity.this)
+                            .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
+                                @Override
+                                public void onConnected(@Nullable Bundle bundle) {
+                                    if (ActivityCompat.checkSelfPermission(LocationListActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                                            ActivityCompat.checkSelfPermission(LocationListActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                                        ActivityCompat.requestPermissions(LocationListActivity.this, new String[] { Manifest.permission.ACCESS_FINE_LOCATION },
+                                                PERMISSION_ACCESS_FINE_LOCATION);
+                                        return;
+                                    }
+
+                                    Location lastUserLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+
+                                    if (lastUserLocation == null) {
+                                        if (isLocationEnabled(LocationListActivity.this)) {
+                                            LocationRequest locationRequest = LocationRequest.create()
+                                                    .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
+                                                    .setInterval(10 * 1000)        // 10 seconds, in milliseconds
+                                                    .setFastestInterval(1000); // 1 second, in milliseconds
+                                            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, locationRequest, mLocationListener);
+
+                                            mLocationProgressDialog = new ProgressDialog(LocationListActivity.this);
+                                            mLocationProgressDialog.setTitle("Retrieving your location...");
+                                            mLocationProgressDialog.setMessage("Please wait");
+                                            mLocationProgressDialog.setCancelable(false);
+                                            mLocationProgressDialog.setCanceledOnTouchOutside(false);
+                                            mLocationProgressDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, mLocationListener);
+                                                }
+                                            });
+                                            mLocationProgressDialog.show();
+                                        }
+                                        else {
+                                            Toast.makeText(LocationListActivity.this, "Enable location.", Toast.LENGTH_SHORT).show();
+                                        }
+                                    } else {
+                                        Pair<LatLng, LatLng> boundingBox = locationToBoundingBox(lastUserLocation, 5);
+                                        startGameWithCustomLocation(boundingBox);
+                                    }
+                            }
+
+                            @Override
+                            public void onConnectionSuspended(int i) {
+
+                            }
+                        })
+                        .addOnConnectionFailedListener(new GoogleApiClient.OnConnectionFailedListener() {
+                            @Override
+                            public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+                            }
+                        })
+                        .addApi(LocationServices.API)
+                        .build();
+
+                    mGoogleApiClient.connect();
+                    return;
+                }
+                else  { //start streetViewActivity with country code.
+                    selectedCountryCode = LocationListItemsHolder.mCountryCodes[position - 5];
                 }
 
                 if (!mIsSingleplayer) { //MULTIPLAYER
@@ -259,31 +353,7 @@ public class LocationListActivity extends AppCompatActivity {
                     Pair<LatLng, LatLng> bounds = new Pair<>(new LatLng(latitudeBounds[0], longitudeBounds[0]),
                             new LatLng(latitudeBounds[1], longitudeBounds[1]));
 
-                    final String countryCode = "custom";
-
-                    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(LocationListActivity.this);
-
-                    if (!mIsSingleplayer) { //MULTIPLAYER
-                        String timerLimitStr = preferences.getString(getString(R.string.settings_timerLimit), "-1");
-                        int timerLimit = Integer.parseInt(timerLimitStr);
-                        boolean hintsEnabled = preferences.getBoolean(getString(R.string.settings_hintsEnabled), false);
-
-                        mSocket.emit("loadLocations", getSettings(false, countryCode, timerLimit, hintsEnabled, bounds));
-                        Log.e("loadLocations", "host emits load locations");
-
-                        setResult(RESULT_OK);
-                        finish();
-                    } else {
-                        if (mIsConnected) { //SINGLEPLAYER
-                            //get locations from socket
-                            mSocket.emit("loadLocations", getSettings(false, countryCode, -1, false, bounds));
-                            showProgressDialog();
-                        } else {
-                            //load locations on phone
-                            LocationSelector selector = new LocationSelector(LocationListActivity.this, mStartGameIntent, mNumOfRounds, false, countryCode);
-                            selector.selectLocations(bounds);
-                        }
-                    }
+                    startGameWithCustomLocation(bounds);
                 }
                 break;
         }
@@ -298,6 +368,60 @@ public class LocationListActivity extends AppCompatActivity {
         mSocket.off(Socket.EVENT_CONNECT_ERROR, onConnectErrorListener);
         mSocket.off(Socket.EVENT_DISCONNECT, onDisconnectListener);
         mSocket.off("startSingleplayerGame", onStartSingleplayerGameListener);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (mGoogleApiClient != null && mGoogleApiClient.isConnected())
+            mGoogleApiClient.disconnect();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_ACCESS_FINE_LOCATION:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // All good!
+                } else {
+                    Toast.makeText(this, "Your location is needed for this mode to work.", Toast.LENGTH_SHORT).show();
+                }
+
+                break;
+        }
+    }
+
+    private Pair<LatLng, LatLng> locationToBoundingBox(Location location, double halfSideInKm) {
+        LatLng center = new LatLng(location.getLatitude(), location.getLongitude());
+        return Calculator.getBoundingBox(center, halfSideInKm);
+    }
+
+    private void startGameWithCustomLocation(Pair<LatLng, LatLng> bounds) {
+        final String countryCode = "custom";
+
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(LocationListActivity.this);
+
+        if (!mIsSingleplayer) { //MULTIPLAYER
+            String timerLimitStr = preferences.getString(getString(R.string.settings_timerLimit), "-1");
+            int timerLimit = Integer.parseInt(timerLimitStr);
+            boolean hintsEnabled = preferences.getBoolean(getString(R.string.settings_hintsEnabled), false);
+
+            mSocket.emit("loadLocations", getSettings(false, countryCode, timerLimit, hintsEnabled, bounds));
+            Log.e("loadLocations", "host emits load locations");
+
+            setResult(RESULT_OK);
+            finish();
+        } else {
+            if (mIsConnected) { //SINGLEPLAYER
+                //get locations from socket
+                mSocket.emit("loadLocations", getSettings(false, countryCode, -1, false, bounds));
+                showProgressDialog();
+            } else {
+                //load locations on phone
+                LocationSelector selector = new LocationSelector(LocationListActivity.this, mStartGameIntent, mNumOfRounds, false, countryCode);
+                selector.selectLocations(bounds);
+            }
+        }
     }
 
     private JSONObject getSettings(boolean randomCountry, String countryCode, int timerLimit, boolean hintsEnabled, Pair<LatLng, LatLng> bounds) {
@@ -339,8 +463,29 @@ public class LocationListActivity extends AppCompatActivity {
         mProgressDialog.show();
     }
 
-    private void dismissProgressDialog() {
-        if (mProgressDialog != null && mProgressDialog.isShowing())
-            mProgressDialog.dismiss();
+    private void dismissProgressDialog(ProgressDialog dialog) {
+        if (dialog != null && dialog.isShowing())
+            dialog.dismiss();
+    }
+
+    public boolean isLocationEnabled(Context context) {
+        int locationMode = 0;
+        String locationProviders;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            try {
+                locationMode = Settings.Secure.getInt(context.getContentResolver(), Settings.Secure.LOCATION_MODE);
+
+            } catch (Settings.SettingNotFoundException e) {
+                e.printStackTrace();
+                return false;
+            }
+
+            return locationMode != Settings.Secure.LOCATION_MODE_OFF;
+
+        } else {
+            locationProviders = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.LOCATION_PROVIDERS_ALLOWED);
+            return !TextUtils.isEmpty(locationProviders);
+        }
     }
 }

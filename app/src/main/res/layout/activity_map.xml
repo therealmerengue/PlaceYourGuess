@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.trm.placeyourguess.MapActivity">
+    tools:context="com.example.trm.placeyourguess.MapActivity"
+    xmlns:strokeAttrs="http://schemas.android.com/apk/res-auto">
 
     <fragment
         android:id="@+id/frag_map"
@@ -24,14 +25,16 @@
         android:paddingLeft="15dp"
         android:paddingRight="15dp">
 
-        <TextView
+        <com.example.trm.placeyourguess.StrokedTextView
             android:id="@+id/txt_Points"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-smallcaps"
             android:text="@string/points"
             android:textSize="20sp"
-            android:layout_gravity="center_vertical"/>
+            android:layout_gravity="center_vertical"
+            strokeAttrs:textStrokeColor="#fff"
+            strokeAttrs:textStrokeWidth=".25"/>
 
         <Space
             android:layout_width="0dp"
@@ -50,39 +53,60 @@
 
     </LinearLayout>
 
-    <TextView
+    <com.example.trm.placeyourguess.StrokedTextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/txt_RoundTimer"
         android:layout_gravity="top|center"
         android:layout_margin="10dp"
         android:textSize="35sp"
-        android:fontFamily="sans-serif-smallcaps"/>
+        android:fontFamily="sans-serif-smallcaps"
+        strokeAttrs:textStrokeColor="#fff"
+        strokeAttrs:textStrokeWidth=".25"/>
 
-    <RelativeLayout
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|right"
-        android:layout_margin="16dp">
+        android:layout_gravity="center|right"
+        android:layout_margin="16dp"
+        android:visibility="gone"
+        android:id="@+id/layout_hints"
+        android:gravity="center">
+
+        <com.example.trm.placeyourguess.StrokedTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/hints"
+            android:id="@+id/txt_hints"
+            android:textSize="20sp"
+            android:fontFamily="sans-serif-smallcaps"
+            strokeAttrs:textStrokeColor="#fff"
+            strokeAttrs:textStrokeWidth=".25"/>
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="10dp" />
 
         <android.support.design.widget.FloatingActionButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/btn_hintDistance"
             android:src="@drawable/hint_distance"
-            app:backgroundTint="@color/colorPrimaryDark"
-            android:layout_marginRight="25dp"
-            android:visibility="gone"/>
+            app:backgroundTint="@color/colorPrimaryDark" />
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="10dp" />
 
         <android.support.design.widget.FloatingActionButton
-            android:id="@+id/btn_switchToStreetView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/streetview"
-            app:backgroundTint="@color/colorPrimaryDark"
-            android:layout_toRightOf="@id/btn_hintDistance"/>
+            android:id="@+id/btn_hintCountry"
+            android:src="@drawable/hint_country"
+            app:backgroundTint="@color/colorPrimaryDark" />
 
-    </RelativeLayout>
+    </LinearLayout>
 
     <Button
         android:id="@+id/btn_confirm"
@@ -95,5 +119,14 @@
         android:text="@string/ok"
         android:textColor="#fff"
         android:textSize="18sp" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/btn_switchToStreetView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/streetview"
+        app:backgroundTint="@color/colorPrimaryDark"
+        android:layout_gravity="bottom|right"
+        android:layout_margin="16dp"/>
 
 </FrameLayout>

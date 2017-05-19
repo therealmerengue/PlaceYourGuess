@@ -11,6 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,6 +31,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import java.text.DecimalFormat;
 
 import logic.Calculator;
+import logic.CountryHintChecker;
 
 import static com.example.trm.placeyourguess.R.string.points;
 
@@ -44,11 +46,13 @@ public class MapActivity extends AppCompatActivity {
     private Button mBtnConfirm;
     private FloatingActionButton mBtnSwitchToStreetView;
     private FloatingActionButton mBtnHintDistance;
-    private TextView mTxtRoundTimer;
+    private FloatingActionButton mBtnHintCountry;
+    private StrokedTextView mTxtRoundTimer;
+    private LinearLayout mLayoutHints;
 
     //score layout
     private LinearLayout mLayoutScore;
-    private TextView mTxtPoints;
+    private StrokedTextView mTxtPoints;
     private Button mBtnNextLocation;
 
     private CountDownTimer mRoundTimer;
@@ -112,10 +116,12 @@ public class MapActivity extends AppCompatActivity {
             }
         });
 
-        //DISTANCE HINT
+        //HINTS
         if (mHintsEnabled) {
+            mLayoutHints = (LinearLayout) findViewById(R.id.layout_hints);
+            mLayoutHints.setVisibility(View.VISIBLE);
+
             mBtnHintDistance = (FloatingActionButton) findViewById(R.id.btn_hintDistance);
-            mBtnHintDistance.setVisibility(View.VISIBLE);
             mBtnHintDistance.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -125,6 +131,18 @@ public class MapActivity extends AppCompatActivity {
                         float distance = Calculator.measureDistance(mGuessedLocationMarker.getPosition(), mPassedLocationCoords) / 1000;
                         DecimalFormat df = new DecimalFormat("###.##");
                         Toast.makeText(MapActivity.this, "Your guess is " + df.format(distance) + " km off", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+
+            mBtnHintCountry = (FloatingActionButton) findViewById(R.id.btn_hintCountry);
+            mBtnHintCountry.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (mGuessedLocationMarker != null) {
+                        LatLng guessedLocation = mGuessedLocationMarker.getPosition();
+                        CountryHintChecker checker = new CountryHintChecker(MapActivity.this, guessedLocation, mPassedLocationCoords);
+                        checker.checkCountry();
                     }
                 }
             });
@@ -164,7 +182,7 @@ public class MapActivity extends AppCompatActivity {
 
         //SCORE LAYOUT
         mLayoutScore = (LinearLayout) findViewById(R.id.layout_score);
-        mTxtPoints = (TextView) findViewById(R.id.txt_Points);
+        mTxtPoints = (StrokedTextView) findViewById(R.id.txt_Points);
 
         mBtnNextLocation = (Button) findViewById(R.id.btn_nextLocation);
         mBtnNextLocation.setOnClickListener(new View.OnClickListener() {
@@ -337,6 +355,9 @@ public class MapActivity extends AppCompatActivity {
                 .position(mPassedLocationCoords)
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
 
+        if (mLayoutHints != null)
+            mLayoutHints.setVisibility(View.GONE);
+
         if (mGuessConfirmed) {
             String distanceSnippet;
             DecimalFormat df = new DecimalFormat("###.##");
@@ -382,7 +403,7 @@ public class MapActivity extends AppCompatActivity {
 
     private void initTimer() {
         if (mPassedTimeLeft != -1) {
-            mTxtRoundTimer = (TextView) findViewById(R.id.txt_RoundTimer);
+            mTxtRoundTimer = (StrokedTextView) findViewById(R.id.txt_RoundTimer);
             mTxtRoundTimer.setText(Long.toString(mPassedTimeLeft));
 
             if (mPassedTimeLeft == 0) {

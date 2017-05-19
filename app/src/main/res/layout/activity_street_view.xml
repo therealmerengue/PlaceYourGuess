@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:strokeAttrs="http://schemas.android.com/apk/res-auto"
     tools:context="com.example.trm.placeyourguess.StreetViewActivity">
 
     <fragment xmlns:android="http://schemas.android.com/apk/res/android"
@@ -12,7 +13,7 @@
         android:layout_height="match_parent"
         class="com.google.android.gms.maps.SupportStreetViewPanoramaFragment" />
 
-    <TextView
+    <com.example.trm.placeyourguess.StrokedTextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/txt_Timer"
@@ -20,7 +21,9 @@
         android:textSize="35sp"
         android:fontFamily="sans-serif-smallcaps"
         android:textStyle="bold"
-        android:layout_margin="10dp"/>
+        android:layout_margin="10dp"
+        strokeAttrs:textStrokeColor="#fff"
+        strokeAttrs:textStrokeWidth=".25"/>
 
     <Button
         android:layout_width="wrap_content"
@@ -32,56 +35,76 @@
         android:backgroundTint="@color/colorPrimaryDark"
         android:textColor="#fff"/>
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        android:layout_gravity="right|bottom">
+        android:layout_gravity="right|center_vertical"
+        android:id="@+id/layout_hints_sv"
+        android:visibility="gone"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <com.example.trm.placeyourguess.StrokedTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/hints"
+            android:textStyle="bold"
+            android:textSize="20sp"
+            android:fontFamily="sans-serif-smallcaps"
+            strokeAttrs:textStrokeColor="#fff"
+            strokeAttrs:textStrokeWidth=".25"/>
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="10dp" />
 
         <android.support.design.widget.FloatingActionButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/btn_hintStreetNames"
             android:src="@drawable/hint_roadnames"
-            app:backgroundTint="@color/colorPrimaryDark"
-            android:layout_marginRight="25dp"
-            android:visibility="gone"/>
+            app:backgroundTint="@color/colorPrimaryDark"/>
 
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/btn_switchToMapView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/map"
-            android:layout_toRightOf="@id/btn_hintStreetNames"
-            app:backgroundTint="@color/colorPrimaryDark" />
-
-    </RelativeLayout>
+    </LinearLayout>
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="10dp">
 
-        <TextView
+        <com.example.trm.placeyourguess.StrokedTextView
             android:id="@+id/txt_Roundsleft"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-smallcaps"
             android:text="@string/round"
-            android:textColorHighlight="#ffff"
             android:textSize="20sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            strokeAttrs:textStrokeColor="#fff"
+            strokeAttrs:textStrokeWidth=".25"/>
 
-        <TextView
+        <com.example.trm.placeyourguess.StrokedTextView
             android:id="@+id/txt_Score"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-smallcaps"
             android:text="@string/score"
             android:textSize="20sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            strokeAttrs:textStrokeColor="#fff"
+            strokeAttrs:textStrokeWidth=".25"/>
 
     </LinearLayout>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/btn_switchToMapView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/map"
+        android:layout_margin="16dp"
+        android:layout_gravity="bottom|right"
+        app:backgroundTint="@color/colorPrimaryDark" />
 
 </FrameLayout>

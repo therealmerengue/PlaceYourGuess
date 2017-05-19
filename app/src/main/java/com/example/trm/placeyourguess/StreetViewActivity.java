@@ -2,13 +2,19 @@ package com.example.trm.placeyourguess;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.BackgroundColorSpan;
+import android.text.style.ForegroundColorSpan;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.OnStreetViewPanoramaReadyCallback;
@@ -21,10 +27,11 @@ public class StreetViewActivity extends AppCompatActivity {
 
     private FloatingActionButton mBtnSwitchToMap;
     private FloatingActionButton mBtnHintStreetNames;
-    private TextView mTxtTotalScore;
-    private TextView mTxtRoundsLeft;
-    private TextView mTxtTimer;
+    private StrokedTextView mTxtTotalScore;
+    private StrokedTextView mTxtRoundsLeft;
+    private StrokedTextView mTxtTimer;
     private Button mBtnBackToStart;
+    private LinearLayout mLayoutHints;
 
     private StreetViewPanorama mStreetViewPanorama;
 
@@ -84,9 +91,9 @@ public class StreetViewActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_street_view);
 
-        mTxtTimer = (TextView) findViewById(R.id.txt_Timer);
-        mTxtTotalScore = (TextView) findViewById(R.id.txt_Score);
-        mTxtRoundsLeft = (TextView) findViewById(R.id.txt_Roundsleft);
+        mTxtTimer = (StrokedTextView) findViewById(R.id.txt_Timer);
+        mTxtTotalScore = (StrokedTextView) findViewById(R.id.txt_Score);
+        mTxtRoundsLeft = (StrokedTextView) findViewById(R.id.txt_Roundsleft);
 
         //btnSwitchToMap
         mBtnSwitchToMap = (FloatingActionButton) findViewById(R.id.btn_switchToMapView);
@@ -158,7 +165,7 @@ public class StreetViewActivity extends AppCompatActivity {
             setupCountDownTimer(false);
         }
 
-        setupHintsButton();
+        setupHints();
 
         updateScoreTextview();
 
@@ -376,10 +383,12 @@ public class StreetViewActivity extends AppCompatActivity {
         startActivityForResult(intent, REQ_MAP_ACTIVITY);
     }
 
-    private void setupHintsButton() {
+    private void setupHints() {
         if (mHintsEnabled) {
+            mLayoutHints = (LinearLayout) findViewById(R.id.layout_hints_sv);
+            mLayoutHints.setVisibility(View.VISIBLE);
+
             mBtnHintStreetNames = (FloatingActionButton) findViewById(R.id.btn_hintStreetNames);
-            mBtnHintStreetNames.setVisibility(View.VISIBLE);
             mBtnHintStreetNames.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

@@ -43,10 +43,6 @@ public class LocationSelector {
     private boolean mRandomLocation;
     private Intent mStartGameIntent;
 
-    private static final String URL_BEGINNING = "http://maps.google.com/cbk?output=json&hl=en&ll=";
-    private static final String URL_RADIUS = "&radius=";
-    private static final String URL_END = "&cb_client=maps_sv&v=4";
-
     public LocationSelector(Context context, Intent startGameIntent, int numberOfLocations, boolean randomLocation, String countryCode) {
         mNumOfLocations = numberOfLocations;
         mContextActivity = (LocationListActivity) context;
@@ -96,24 +92,6 @@ public class LocationSelector {
         return new Pair<>(new LatLng(minLat, minLng), new LatLng(maxLat, maxLng));
     }
 
-    private LatLng getRandomLatLng(Pair<LatLng, LatLng> bounds) {
-
-        LatLng southWest = bounds.first;
-        LatLng northEast = bounds.second;
-
-        double maxLat = northEast.latitude;
-        double minLat = southWest.latitude;
-        double maxLng = northEast.longitude;
-        double minLng = southWest.longitude;
-
-
-        Random random = new Random(System.currentTimeMillis());
-        double lat = minLat + (maxLat - minLat) * random.nextDouble();
-        double lng = minLng + (maxLng - minLng) * random.nextDouble();
-
-        return new LatLng(lat, lng);
-    }
-
     private Feature findCountryFeature(String countryCode) {
         List<Feature> features = mBoxesFeatureCollection.getFeatures();
 
@@ -136,7 +114,7 @@ public class LocationSelector {
         return null;
     }
 
-    private String readAll(Reader rd) {
+    private static String readAll(Reader rd) {
         StringBuilder sb = new StringBuilder();
         int cp;
         try {
@@ -149,7 +127,7 @@ public class LocationSelector {
         return sb.toString();
     }
 
-    private JSONObject readJsonFromUrl(String url)  {
+    static JSONObject readJsonFromUrl(String url)  {
         InputStream is = null;
 
         try {
@@ -170,43 +148,66 @@ public class LocationSelector {
         return null;
     }
 
-    private String getCountryCode(String countryName) {
-        for (int i = 0; i < mCountriesInfo.length(); i++) {
-            try {
-                JSONObject country = mCountriesInfo.getJSONObject(i);
-                String name = country.getString("name");
-                if (name.equals(countryName)) {
-                    return country.getString("alpha-2");
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-
-        return null;
-    }
-
-    private boolean isAlreadySelected(List<LatLng> locations, LatLng location) {
-        for (LatLng loc : locations) {
-            if (loc.equals(location))
-                return true;
-        }
-        return false;
-    }
-
-    private int getRadius(LatLng southWest, LatLng northEast) {
-        float distanceAcrossBounds = Calculator.measureDistance(southWest, northEast);
-        if (distanceAcrossBounds > 5000000)
-            return 25000;
-        else if (distanceAcrossBounds > 1000000) //m
-            return 10000; //m
-        else if (distanceAcrossBounds > 25000)
-            return 1000;
-        else
-            return 100;
-    }
-
     private class ImageChecker extends AsyncTask<LatLng, Void, List<LatLng>> {
+
+        private static final String URL_BEGINNING = "http://maps.google.com/cbk?output=json&hl=en&ll=";
+        private static final String URL_RADIUS = "&radius=";
+        private static final String URL_END = "&cb_client=maps_sv&v=4";
+
+        private boolean isAlreadySelected(List<LatLng> locations, LatLng location) {
+            for (LatLng loc : locations) {
+                if (loc.equals(location))
+                    return true;
+            }
+            return false;
+        }
+
+        private int getRadius(LatLng southWest, LatLng northEast) {
+            float distanceAcrossBounds = Calculator.measureDistance(southWest, northEast);
+            if (distanceAcrossBounds > 5000000)
+                return 25000;
+            else if (distanceAcrossBounds > 1000000) //m
+                return 10000; //m
+            else if (distanceAcrossBounds > 25000)
+                return 1000;
+            else
+                return 100;
+        }
+
+        private String getCountryCode(String countryName) {
+            for (int i = 0; i < mCountriesInfo.length(); i++) {
+                try {
+                    JSONObject country = mCountriesInfo.getJSONObject(i);
+                    String name = country.getString("name");
+                    if (name.equals(countryName)) {
+                        return country.getString("alpha-2");
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            return null;
+        }
+
+        private LatLng getRandomLatLng(Pair<LatLng, LatLng> bounds) {
+
+            LatLng southWest = bounds.first;
+            LatLng northEast = bounds.second;
+
+            double maxLat = northEast.latitude;
+            double minLat = southWest.latitude;
+            double maxLng = northEast.longitude;
+            double minLng = southWest.longitude;
+
+
+            Random random = new Random(System.currentTimeMillis());
+            double lat = minLat + (maxLat - minLat) * random.nextDouble();
+            double lng = minLng + (maxLng - minLng) * random.nextDouble();
+
+            return new LatLng(lat, lng);
+        }
+
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -215,6 +216,7 @@ public class LocationSelector {
             mProgressDialog.setTitle("Loading locations...");
             mProgressDialog.setMessage("Please wait");
             mProgressDialog.setCancelable(false);
+            mProgressDialog.setCanceledOnTouchOutside(false);
             mProgressDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {

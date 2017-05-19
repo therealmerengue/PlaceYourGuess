@@ -44,4 +44,5 @@
     <string name="rooms">Rooms:</string>
     <string name="reload_list">Reload list</string>
     <string name="new_room">New room</string>
+    <string name="hints">Hints:</string>
 </resources>
