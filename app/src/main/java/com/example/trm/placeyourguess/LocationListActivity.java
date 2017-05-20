@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Build;
@@ -19,6 +20,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
+import android.view.Surface;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -71,6 +73,7 @@ public class LocationListActivity extends AppCompatActivity {
 
             if (mLocationProgressDialog != null && mLocationProgressDialog.isShowing())
                 mLocationProgressDialog.dismiss();
+
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
         }
     };
@@ -93,6 +96,7 @@ public class LocationListActivity extends AppCompatActivity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    Toast.makeText(LocationListActivity.this, "Connection lost.", Toast.LENGTH_LONG).show();
                     dismissProgressDialog(mProgressDialog);
                 }
             });
@@ -126,6 +130,8 @@ public class LocationListActivity extends AppCompatActivity {
             mStartGameIntent.putExtra(EXTRA_LATITUDES, latitudes);
             mStartGameIntent.putExtra(EXTRA_LONGITUDES, longitudes);
             startActivityForResult(mStartGameIntent, REQ_STREET_VIEW_ACTIVITY);
+
+            dismissProgressDialog(mProgressDialog);
         }
     };
 
@@ -147,12 +153,11 @@ public class LocationListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_country_list);
 
         mSocket = SocketHolder.getInstance();
+        mIsConnected = mSocket.connected();
         mSocket.on(EVENT_CONNECT, onConnectListener)
                 .on(Socket.EVENT_CONNECT_ERROR, onConnectErrorListener)
                 .on(Socket.EVENT_DISCONNECT, onDisconnectListener)
                 .on(EVENT_START_SINGLEPLAYER_GAME, onStartSingleplayerGameListener);
-        if (!mSocket.connected())
-            mSocket.connect();
 
         mIsSingleplayer = getIntent().getBooleanExtra(MainActivity.EXTRA_IS_SINGLEPLAYER, true);
 
@@ -198,7 +203,6 @@ public class LocationListActivity extends AppCompatActivity {
                         }
 
                         mSocket.emit("loadReadyLocations", settings);
-                        showProgressDialog();
                         Log.e("loadLocations", "host emits load city locations");
 
                         setResult(RESULT_OK);
@@ -231,8 +235,7 @@ public class LocationListActivity extends AppCompatActivity {
                             .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
                                 @Override
                                 public void onConnected(@Nullable Bundle bundle) {
-                                    if (ActivityCompat.checkSelfPermission(LocationListActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                                            ActivityCompat.checkSelfPermission(LocationListActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                                    if (ActivityCompat.checkSelfPermission(LocationListActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                                         ActivityCompat.requestPermissions(LocationListActivity.this, new String[] { Manifest.permission.ACCESS_FINE_LOCATION },
                                                 PERMISSION_ACCESS_FINE_LOCATION);
                                         return;
@@ -243,7 +246,7 @@ public class LocationListActivity extends AppCompatActivity {
                                     if (lastUserLocation == null) {
                                         if (isLocationEnabled(LocationListActivity.this)) {
                                             LocationRequest locationRequest = LocationRequest.create()
-                                                    .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
+                                                    .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
                                                     .setInterval(10 * 1000)        // 10 seconds, in milliseconds
                                                     .setFastestInterval(1000); // 1 second, in milliseconds
                                             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, locationRequest, mLocationListener);
@@ -257,9 +260,12 @@ public class LocationListActivity extends AppCompatActivity {
                                                 @Override
                                                 public void onClick(DialogInterface dialog, int which) {
                                                     LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, mLocationListener);
+                                                    unlockOrientation();
                                                 }
                                             });
                                             mLocationProgressDialog.show();
+
+                                            lockOrientation();
                                         }
                                         else {
                                             Toast.makeText(LocationListActivity.this, "Enable location.", Toast.LENGTH_SHORT).show();
@@ -270,16 +276,10 @@ public class LocationListActivity extends AppCompatActivity {
                                     }
                             }
 
-                            @Override
-                            public void onConnectionSuspended(int i) {
-
-                            }
+                            @Override public void onConnectionSuspended(int i) {}
                         })
                         .addOnConnectionFailedListener(new GoogleApiClient.OnConnectionFailedListener() {
-                            @Override
-                            public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
-                            }
+                            @Override public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {}
                         })
                         .addApi(LocationServices.API)
                         .build();
@@ -362,8 +362,8 @@ public class LocationListActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (mIsSingleplayer)
-            mSocket.disconnect();
+        //if (mIsSingleplayer)
+            //mSocket.disconnect();
         mSocket.off(Socket.EVENT_CONNECT, onConnectListener);
         mSocket.off(Socket.EVENT_CONNECT_ERROR, onConnectErrorListener);
         mSocket.off(Socket.EVENT_DISCONNECT, onDisconnectListener);
@@ -460,15 +460,42 @@ public class LocationListActivity extends AppCompatActivity {
         mProgressDialog = new ProgressDialog(this);
         mProgressDialog.setTitle("Loading locations...");
         mProgressDialog.setMessage("Please wait");
+        mProgressDialog.setCancelable(false);
+        mProgressDialog.setCanceledOnTouchOutside(false);
         mProgressDialog.show();
+        lockOrientation();
     }
 
     private void dismissProgressDialog(ProgressDialog dialog) {
         if (dialog != null && dialog.isShowing())
             dialog.dismiss();
+
+        unlockOrientation();
     }
 
-    public boolean isLocationEnabled(Context context) {
+    public void lockOrientation() {
+        int rotation = getWindowManager().getDefaultDisplay().getRotation();
+        switch(rotation) {
+            case Surface.ROTATION_180:
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT);
+                break;
+            case Surface.ROTATION_270:
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
+                break;
+            case Surface.ROTATION_0:
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                break;
+            case Surface.ROTATION_90:
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                break;
+        }
+    }
+
+    public void unlockOrientation() {
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+    }
+
+    private boolean isLocationEnabled(Context context) {
         int locationMode = 0;
         String locationProviders;
 

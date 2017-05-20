@@ -140,7 +140,6 @@ public class MultiplayerRoomsActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 mTxtConnectionStatus.setText("Reconnecting");
-                mSocket.connect();
             }
         });
 
@@ -189,8 +188,6 @@ public class MultiplayerRoomsActivity extends AppCompatActivity {
             .on(Socket.EVENT_CONNECT_ERROR, onConnectErrorListener)
             .on(Socket.EVENT_DISCONNECT, onDisconnectListener)
             .on(EVENT_RECEIVE_ROOM_LIST, onRoomListReceivedListener);
-        if (!mSocket.connected())
-            mSocket.connect();
     }
 
     @Override

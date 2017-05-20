@@ -4,7 +4,6 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 
     <application
@@ -13,13 +12,17 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        android:name=".PYGApp">
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
 
         <service
-            android:name=".MultiplayerRoomActivity$OnClearFromRecentService"
+            android:name=".MultiplayerRoomActivity$OnAppKilledAfterJoinedRoomService"
+            android:stopWithTask="false" />
+
+        <service android:name=".PYGApp$SocketService"
             android:stopWithTask="false" />
 
         <activity
@@ -56,7 +59,7 @@
             android:theme="@style/AppThemeActionBar"
             android:windowSoftInputMode="stateHidden" />
         <activity android:name=".MultiplayerRoomActivity" />
-        <activity android:name=".TutorialActivity"></activity>
+        <activity android:name=".TutorialActivity"/>
     </application>
 
 </manifest>

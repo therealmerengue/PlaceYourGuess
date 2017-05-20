@@ -2,20 +2,14 @@ package com.example.trm.placeyourguess;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.text.Spannable;
-import android.text.SpannableString;
-import android.text.style.BackgroundColorSpan;
-import android.text.style.ForegroundColorSpan;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import com.google.android.gms.maps.OnStreetViewPanoramaReadyCallback;
 import com.google.android.gms.maps.StreetViewPanorama;
@@ -53,6 +47,10 @@ public class StreetViewActivity extends AppCompatActivity {
     private double[] mPreviousMapCenter;
     private float mPreviousMapZoom;
 
+    //for coming back to the same location on StreetView if user comes back from MapActivity without making a guess
+    private double[] mPreviousPanoramaPosition;
+    private boolean mMapActivityResultCancelled = false;
+
     //multiplayer variables
     private boolean mIsSingleplayer = true;
     private boolean mIsHost = true;
@@ -73,8 +71,7 @@ public class StreetViewActivity extends AppCompatActivity {
 
     //SaveInstanceState variable keys
     private final static String KEY_SAVED_STATE_MAP_ACTIVITY_STARTED = "KEY_SAVED_STATE_MAP_ACTIVITY_STARTED";
-    private final static String KEY_SAVED_STATE_LOCATION_LAT = "LOCATION_LAT";
-    private final static String KEY_SAVED_STATE_LOCATION_LNG = "LOCATION_LNG";
+    private final static String KEY_SAVED_STATE_PANORAMA_LAT_LNG = "PANORAMA_LAT_LNG";
     private final static String KEY_SAVED_STATE_TIMER_VALUE = "TIMER_VALUE";
     private final static String KEY_SAVED_STATE_ROUND_NUMBER = "ROUND_NUMBER";
     private final static String KEY_SAVED_STATE_TOTAL_SCORE = "TOTAL_SCORE";
@@ -132,6 +129,7 @@ public class StreetViewActivity extends AppCompatActivity {
 
                 mHintsEnabled = preferences.getBoolean(getString(R.string.settings_hintsEnabled), false);
             }
+            mTimerLeft = mTimerLimit;
 
             mLatitudes = intent.getDoubleArrayExtra(LocationListActivity.EXTRA_LATITUDES);
             mLongitudes = intent.getDoubleArrayExtra(LocationListActivity.EXTRA_LONGITUDES);
@@ -162,6 +160,10 @@ public class StreetViewActivity extends AppCompatActivity {
 
             mMapActivityStarted = savedInstanceState.getBoolean(KEY_SAVED_STATE_MAP_ACTIVITY_STARTED);
 
+            if (savedInstanceState.containsKey(KEY_SAVED_STATE_PANORAMA_LAT_LNG)) {
+                mPreviousPanoramaPosition = savedInstanceState.getDoubleArray(KEY_SAVED_STATE_PANORAMA_LAT_LNG);
+            }
+
             setupCountDownTimer(false);
         }
 
@@ -174,8 +176,12 @@ public class StreetViewActivity extends AppCompatActivity {
         updateRoundsLeftTextview();
 
         //Street View panorama
-        if (!mMapActivityStarted)
-            initPanoramaFragment();
+        if (!mMapActivityStarted) {
+            if (savedInstanceState == null)
+                initPanoramaFragment(new LatLng(mLatitudes[mRoundNumber - 1], mLongitudes[mRoundNumber - 1]));
+            else if (savedInstanceState.containsKey(KEY_SAVED_STATE_PANORAMA_LAT_LNG))
+                initPanoramaFragment(new LatLng(mPreviousPanoramaPosition[0], mPreviousPanoramaPosition[1]));
+        }
     }
 
     @Override
@@ -196,7 +202,7 @@ public class StreetViewActivity extends AppCompatActivity {
 
                     if (mRoundNumber <= mNumberOfRounds) {
                         updateScoreTextview();
-                        initPanoramaFragment();
+                        initPanoramaFragment(new LatLng(mLatitudes[mRoundNumber - 1], mLongitudes[mRoundNumber - 1]));
                         mMapActivityStarted = false;
                         updateRoundsLeftTextview();
                         setupCountDownTimer(true);
@@ -210,7 +216,7 @@ public class StreetViewActivity extends AppCompatActivity {
                         finish();
                     }
                 } else if (resultCode == RESULT_CANCELED) {
-                    initPanoramaFragment();
+                    mMapActivityResultCancelled = true;
                     mMapActivityStarted = false;
                     if (data != null) {
                         Bundle result = data.getExtras();
@@ -234,12 +240,22 @@ public class StreetViewActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         mSwitchToMapOnTimerEnd = true; //to prevent having 2 MapActivities started
+
+        if (mMapActivityResultCancelled && mPreviousPanoramaPosition != null) {
+            initPanoramaFragment(new LatLng(mPreviousPanoramaPosition[0], mPreviousPanoramaPosition[1]));
+            mMapActivityResultCancelled = false;
+        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         mSwitchToMapOnTimerEnd = false;
+
+        if (mStreetViewPanorama != null && mStreetViewPanorama.getLocation() != null) {
+            LatLng position = mStreetViewPanorama.getLocation().position;
+            mPreviousPanoramaPosition = new double[] {position.latitude, position.longitude};
+        }
     }
 
     @Override
@@ -251,8 +267,7 @@ public class StreetViewActivity extends AppCompatActivity {
             StreetViewPanoramaLocation location = mStreetViewPanorama.getLocation();
             if (location != null) {
                 LatLng position = mStreetViewPanorama.getLocation().position;
-                outState.putDouble(KEY_SAVED_STATE_LOCATION_LAT, position.latitude);
-                outState.putDouble(KEY_SAVED_STATE_LOCATION_LNG, position.longitude);
+                outState.putDoubleArray(KEY_SAVED_STATE_PANORAMA_LAT_LNG, new double[] {position.latitude, position.longitude});
             }
         }
 
@@ -287,7 +302,7 @@ public class StreetViewActivity extends AppCompatActivity {
         quitGameDialogFragment.show(getSupportFragmentManager(), "TAG_QUIT_FRAGMENT");
     }
 
-    private void initPanoramaFragment() {
+    private void initPanoramaFragment(final LatLng panoramaPosition) {
         SupportStreetViewPanoramaFragment streetViewPanoramaFragment =
                 (SupportStreetViewPanoramaFragment) getSupportFragmentManager().findFragmentById(R.id.frag_streetview);
         streetViewPanoramaFragment.getStreetViewPanoramaAsync(new OnStreetViewPanoramaReadyCallback() {
@@ -300,7 +315,6 @@ public class StreetViewActivity extends AppCompatActivity {
                 mStreetViewPanorama.setZoomGesturesEnabled(true);
                 mStreetViewPanorama.setPanningGesturesEnabled(true);
 
-                LatLng panoramaPosition = new LatLng(mLatitudes[mRoundNumber - 1], mLongitudes[mRoundNumber - 1]);
                 mStreetViewPanorama.setPosition(panoramaPosition);
             }
         });
@@ -323,18 +337,13 @@ public class StreetViewActivity extends AppCompatActivity {
 
     public void setupCountDownTimer(boolean newTimer) {
         if (mTimerLimit != -1) {
-            String label = "Time left: ";
 
-            long startValue;
-            if (newTimer) {
-                startValue = mTimerLimit;
-                label += mTimerLimit;
-            } else {
+            long startValue = mTimerLimit;
+            if (!newTimer) {
                 startValue = mTimerLeft;
-                label += mTimerLeft;
             }
 
-            mTxtTimer.setText(label);
+            mTxtTimer.setText(Long.toString(startValue));
             cancelCountDownTimer();
             mCountDownTimer = new CountDownTimer(startValue * 1000, 1000) {
                 @Override
@@ -357,6 +366,7 @@ public class StreetViewActivity extends AppCompatActivity {
 
     private void startMapActivity() {
         Intent intent = new Intent(StreetViewActivity.this, MapActivity.class);
+
         LatLng panoramaLocation = mStreetViewPanorama.getLocation().position;
         intent.putExtra(EXTRA_LOCATION_COORDINATES, new double[] {panoramaLocation.latitude, panoramaLocation.longitude});
 

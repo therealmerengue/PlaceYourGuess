@@ -97,8 +97,6 @@ public class MultiplayerNewRoomActivity extends AppCompatActivity {
         mSocket = SocketHolder.getInstance();
         mSocket.on(EVENT_ROOM_ALREADY_EXISTS, onRoomAlreadyExistsListener)
             .on(EVENT_ROOM_CREATED, onRoomCreatedListener);
-        if (!mSocket.connected())
-            mSocket.connect();
     }
 
     @Override

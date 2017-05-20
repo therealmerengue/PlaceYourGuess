@@ -21,6 +21,8 @@ public class SocketHolder {
             }
         }
 
+        if (!mSocket.connected()) mSocket.connect();
+
         return mSocket;
     }
 }

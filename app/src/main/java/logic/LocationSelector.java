@@ -30,8 +30,6 @@ import java.util.Random;
 import holders.LocationInfoHolder;
 import holders.LocationListItemsHolder;
 
-import static android.R.id.message;
-
 public class LocationSelector {
     private FeatureCollection mBoxesFeatureCollection;
     private JSONArray mCountriesInfo;
@@ -212,6 +210,8 @@ public class LocationSelector {
         protected void onPreExecute() {
             super.onPreExecute();
 
+            mContextActivity.lockOrientation();
+
             mProgressDialog = new ProgressDialog(mContextActivity);
             mProgressDialog.setTitle("Loading locations...");
             mProgressDialog.setMessage("Please wait");
@@ -305,6 +305,8 @@ public class LocationSelector {
 
             mContextActivity.startActivityForResult(mStartGameIntent, LocationListActivity.REQ_STREET_VIEW_ACTIVITY);
             mProgressDialog.dismiss();
+
+            mContextActivity.unlockOrientation();
         }
     }
 }

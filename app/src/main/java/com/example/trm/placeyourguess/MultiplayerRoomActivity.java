@@ -33,6 +33,10 @@ public class MultiplayerRoomActivity extends AppCompatActivity {
     private LinearLayout mLayoutHostControls;
     private ProgressDialog mProgressDialog;
 
+    private boolean mIsGameLoading = false;
+
+    private final static String KEY_SAVED_STATE_GAME_LOADING = "KEY_SAVED_STATE_GAME_LOADING";
+
     private PlayerListAdapter mPlayerListAdapter;
     private static String mPlayerName;
     private static String mRoomName;
@@ -181,7 +185,7 @@ public class MultiplayerRoomActivity extends AppCompatActivity {
                 }
             });
 
-            stopService(new Intent(MultiplayerRoomActivity.this, OnClearFromRecentService.class));
+            stopService(new Intent(MultiplayerRoomActivity.this, OnAppKilledAfterJoinedRoomService.class));
             MultiplayerRoomActivity.this.finish();
         }
     };
@@ -206,7 +210,7 @@ public class MultiplayerRoomActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_multiplayer_room);
 
-        startService(new Intent(this, OnClearFromRecentService.class));
+        startService(new Intent(this, OnAppKilledAfterJoinedRoomService.class));
 
         mSocket = SocketHolder.getInstance();
         mSocket.on(EVENT_PLAYER_JOINED, onReloadListListener)
@@ -222,7 +226,7 @@ public class MultiplayerRoomActivity extends AppCompatActivity {
         mPlayerName = intent.getStringExtra(MultiplayerNewRoomActivity.EXTRA_PLAYER_NAME);
         mIsHost = intent.getBooleanExtra(MultiplayerNewRoomActivity.EXTRA_IS_HOST, false);
 
-        if (!mIsHost) {
+        if (!mIsHost && savedInstanceState == null) {
             JSONObject joinRoomInfo = new JSONObject();
             try {
                 joinRoomInfo.put("roomName", mRoomName);
@@ -234,6 +238,12 @@ public class MultiplayerRoomActivity extends AppCompatActivity {
             mSocket.emit(EVENT_JOIN_EXISTING_ROOM, joinRoomInfo);
         } else {
             mSocket.emit(EVENT_REQUEST_PLAYER_LIST, mRoomName);
+        }
+
+        if (savedInstanceState != null) {
+            mIsGameLoading = savedInstanceState.getBoolean(KEY_SAVED_STATE_GAME_LOADING);
+            if (mIsGameLoading)
+                showProgressDialog();
         }
 
         mTxtRoomName = (TextView) findViewById(R.id.txt_joinedRoomName);
@@ -275,10 +285,17 @@ public class MultiplayerRoomActivity extends AppCompatActivity {
             public void onClick(View v) {
                 emitLeaveRoom();
                 setResult(RESULT_CANCELED);
-                stopService(new Intent(MultiplayerRoomActivity.this, OnClearFromRecentService.class));
+                stopService(new Intent(MultiplayerRoomActivity.this, OnAppKilledAfterJoinedRoomService.class));
                 finish();
             }
         });
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putBoolean(KEY_SAVED_STATE_GAME_LOADING, mIsGameLoading);
     }
 
     @Override
@@ -325,7 +342,7 @@ public class MultiplayerRoomActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         emitLeaveRoom();
-        stopService(new Intent(MultiplayerRoomActivity.this, OnClearFromRecentService.class));
+        stopService(new Intent(MultiplayerRoomActivity.this, OnAppKilledAfterJoinedRoomService.class));
         super.onBackPressed();
     }
 
@@ -334,11 +351,14 @@ public class MultiplayerRoomActivity extends AppCompatActivity {
         mProgressDialog.setTitle("Loading locations...");
         mProgressDialog.setMessage("Please wait");
         mProgressDialog.show();
+        mIsGameLoading = true;
     }
 
     private void dismissProgressDialog() {
         if (mProgressDialog != null && mProgressDialog.isShowing())
             mProgressDialog.dismiss();
+
+        mIsGameLoading = false;
     }
 
     private static void emitLeaveRoom() {
@@ -352,7 +372,7 @@ public class MultiplayerRoomActivity extends AppCompatActivity {
         mSocket.emit(EVENT_LEAVE_ROOM, leaveInfo);
     }
 
-    public static class OnClearFromRecentService extends Service {
+    public static class OnAppKilledAfterJoinedRoomService extends Service {
 
         @Override
         public IBinder onBind(Intent intent) {
@@ -361,25 +381,22 @@ public class MultiplayerRoomActivity extends AppCompatActivity {
 
         @Override
         public int onStartCommand(Intent intent, int flags, int startId) {
-            Log.d("ClearFromRecentService", "Service Started");
+            Log.d("OnAppKilledAfterJoined", "Service Started");
             return START_NOT_STICKY;
         }
 
         @Override
         public void onDestroy() {
             super.onDestroy();
-            Log.d("ClearFromRecentService", "Service Destroyed");
+            Log.d("OnAppKilledAfterJoined", "Service Destroyed");
         }
 
         @Override
         public void onTaskRemoved(Intent rootIntent) {
-            Log.e("ClearFromRecentService", "END");
+            Log.e("OnAppKilledAfterJoined", "END");
 
-            if (!mSocket.connected())
-                mSocket.connect();
             emitLeaveRoom();
 
-            mSocket.disconnect();
             stopSelf();
         }
     }

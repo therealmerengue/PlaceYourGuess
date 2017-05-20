@@ -21,14 +21,17 @@ public class ScoreListAdapter extends ArrayAdapter<String> {
     private Integer[] scores;
     private Activity context;
 
-    public ScoreListAdapter(Activity context, String boldName, String[] names, Integer[] scores) {
+    public ScoreListAdapter(Activity context, String boldName, String[] names, int[] scores) {
         super(context, R.layout.score_list_item, names);
 
         this.context = context;
         this.boldName = boldName;
         this.names = names;
-        this.scores = scores;
-        Arrays.sort(scores, Collections.reverseOrder());
+
+        this.scores = new Integer[scores.length];
+        for (int i = 0; i < scores.length; i++)
+            this.scores[i] = scores[i];
+        Arrays.sort(this.scores, Collections.reverseOrder());
     }
 
     @NonNull
