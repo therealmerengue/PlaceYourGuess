@@ -367,6 +367,8 @@ public class StreetViewActivity extends AppCompatActivity {
     private void startMapActivity() {
         Intent intent = new Intent(StreetViewActivity.this, MapActivity.class);
 
+        if (mStreetViewPanorama == null || mStreetViewPanorama.getLocation() == null) return;
+
         LatLng panoramaLocation = mStreetViewPanorama.getLocation().position;
         intent.putExtra(EXTRA_LOCATION_COORDINATES, new double[] {panoramaLocation.latitude, panoramaLocation.longitude});
 

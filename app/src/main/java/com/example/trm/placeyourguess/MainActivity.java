@@ -20,11 +20,6 @@ import holders.LocationInfoHolder;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Button mBtnSingleplayer;
-    private Button mBtnMultiplayer;
-    private Button mBtnTutorial;
-    private FloatingActionButton mBtnSettings;
-
     //intent extras' tags
     static final String EXTRA_IS_SINGLEPLAYER = "IS_SINGLEPLAYER";
 
@@ -33,24 +28,24 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mBtnSingleplayer = (Button) findViewById(R.id.btn_singleplayer);
-        mBtnSingleplayer.setOnClickListener(new View.OnClickListener() {
+        Button btnSingleplayer = (Button) findViewById(R.id.btn_singleplayer);
+        btnSingleplayer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 new IsOnlineTask().execute(0);
             }
         });
 
-        mBtnMultiplayer = (Button) findViewById(R.id.btn_multiplayer);
-        mBtnMultiplayer.setOnClickListener(new View.OnClickListener() {
+        Button btnMultiplayer = (Button) findViewById(R.id.btn_multiplayer);
+        btnMultiplayer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 new IsOnlineTask().execute(1);
             }
         });
 
-        mBtnTutorial = (Button) findViewById(R.id.btn_tutorial);
-        mBtnTutorial.setOnClickListener(new View.OnClickListener() {
+        Button btnTutorial = (Button) findViewById(R.id.btn_tutorial);
+        btnTutorial.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, TutorialActivity.class);
@@ -58,8 +53,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        mBtnSettings = (FloatingActionButton) findViewById(R.id.btn_settings);
-        mBtnSettings.setOnClickListener(new View.OnClickListener() {
+        FloatingActionButton btnSettings = (FloatingActionButton) findViewById(R.id.btn_settings);
+        btnSettings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
@@ -81,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
         holder.loadFamousPlaces(famousStream);
     }
 
-    class IsOnlineTask extends AsyncTask<Integer, Void, Boolean> {
+    private class IsOnlineTask extends AsyncTask<Integer, Void, Boolean> {
         private int gameMode; //0 - SINGLE, 1 - MULTI
 
         private void showNoInternetAlertDialog(String title, String message) {

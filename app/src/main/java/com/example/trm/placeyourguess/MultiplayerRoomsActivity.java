@@ -139,7 +139,17 @@ public class MultiplayerRoomsActivity extends AppCompatActivity {
         mBtnRefresh.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mTxtConnectionStatus.setText("Reconnecting");
+                if (!mSocket.connected()) {
+                    mSocket.connect();
+                    mTxtConnectionStatus.setText("Reconnecting...");
+                } else {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MultiplayerRoomsActivity.this, "You are already connected.", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
             }
         });
 
@@ -183,6 +193,9 @@ public class MultiplayerRoomsActivity extends AppCompatActivity {
         });
 
         mSocket = SocketHolder.getInstance();
+        if (mSocket.connected()) {
+            mTxtConnectionStatus.setText("Connected to server.");
+        }
 
         mSocket.on(Socket.EVENT_CONNECT, onConnectListener)
             .on(Socket.EVENT_CONNECT_ERROR, onConnectErrorListener)

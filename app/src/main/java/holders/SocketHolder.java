@@ -13,8 +13,8 @@ public class SocketHolder {
         if (mSocket == null) {
             try {
                 IO.Options options = new IO.Options();
-                options.timeout = 500;
-                options.reconnectionAttempts = 2;
+                options.timeout = 700;
+                options.reconnectionAttempts = 3;
                 mSocket = IO.socket("https://place-your-guess.herokuapp.com/", options);
             } catch (URISyntaxException e) {
                 e.printStackTrace();
