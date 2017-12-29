@@ -59,6 +59,7 @@
             android:theme="@style/AppThemeActionBar"
             android:windowSoftInputMode="stateHidden" />
         <activity android:name=".MultiplayerRoomActivity" />
+        <activity android:name=".TutorialActivity" />
     </application>
 
 </manifest>

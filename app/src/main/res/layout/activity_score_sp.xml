@@ -24,8 +24,8 @@
         android:layout_height="0dp"
         android:layout_weight=".4"
         android:orientation="vertical"
-        android:paddingLeft="50dp"
-        android:paddingRight="50dp">
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp">
 
         <TextView
             android:layout_width="match_parent"

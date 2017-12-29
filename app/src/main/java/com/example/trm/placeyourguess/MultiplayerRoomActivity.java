@@ -29,6 +29,7 @@ public class MultiplayerRoomActivity extends AppCompatActivity {
     private Button mBtnLeaveRoom;
     private Button mBtnGameSettings;
     private Button mBtnStartGame;
+    private Button mBtnShowScores;
     private ListView mLvPlayers;
     private LinearLayout mLayoutHostControls;
     private ProgressDialog mProgressDialog;
@@ -36,11 +37,13 @@ public class MultiplayerRoomActivity extends AppCompatActivity {
     private boolean mIsGameLoading = false;
 
     private final static String KEY_SAVED_STATE_GAME_LOADING = "KEY_SAVED_STATE_GAME_LOADING";
+    private final static String KEY_SAVED_STATE_MOST_RECENT_SCORE = "KEY_SAVED_STATE_MOST_RECENT_SCORE";
 
     private PlayerListAdapter mPlayerListAdapter;
     private static String mPlayerName;
     private static String mRoomName;
     private boolean mIsHost;
+    private int mMostRecentScore;
 
     static final String EXTRA_IS_HOST = "EXTRA_IS_HOST";
     static final String EXTRA_HINTS_ENABLED = "EXTRA_HINTS_ENABLED";
@@ -133,6 +136,13 @@ public class MultiplayerRoomActivity extends AppCompatActivity {
     private Emitter.Listener onStartMultiplayerGame = new Emitter.Listener() {
         @Override
         public void call(Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mBtnShowScores.setEnabled(false);
+                }
+            });
+
             JSONObject settings = (JSONObject) args[0];
             JSONArray locations = null;
             int timerLimit = -1;
@@ -242,6 +252,7 @@ public class MultiplayerRoomActivity extends AppCompatActivity {
 
         if (savedInstanceState != null) {
             mIsGameLoading = savedInstanceState.getBoolean(KEY_SAVED_STATE_GAME_LOADING);
+            mMostRecentScore = savedInstanceState.getInt(KEY_SAVED_STATE_MOST_RECENT_SCORE);
             if (mIsGameLoading)
                 showProgressDialog();
         }
@@ -289,6 +300,18 @@ public class MultiplayerRoomActivity extends AppCompatActivity {
                 finish();
             }
         });
+
+        mBtnShowScores = (Button) findViewById(R.id.btn_showScores);
+        mBtnShowScores.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MultiplayerRoomActivity.this, ScoreMPActivity.class);
+                intent.putExtra(EXTRA_FINAL_SCORE, mMostRecentScore);
+                intent.putExtra(EXTRA_ROOM_NAME, mRoomName);
+                intent.putExtra(EXTRA_NICKNAME, mPlayerName);
+                startActivity(intent);
+            }
+        });
     }
 
     @Override
@@ -296,6 +319,7 @@ public class MultiplayerRoomActivity extends AppCompatActivity {
         super.onSaveInstanceState(outState);
 
         outState.putBoolean(KEY_SAVED_STATE_GAME_LOADING, mIsGameLoading);
+        outState.putInt(KEY_SAVED_STATE_MOST_RECENT_SCORE, mMostRecentScore);
     }
 
     @Override
@@ -305,16 +329,12 @@ public class MultiplayerRoomActivity extends AppCompatActivity {
         switch (requestCode) {
             case REQ_STREET_VIEW_ACTIVITY:
                 if (data != null) {
+                    mBtnShowScores.setEnabled(true);
+
                     Bundle resultData = data.getExtras();
-                    int score = resultData.getInt(StreetViewActivity.RESULT_KEY_SCORE);
+                    mMostRecentScore = resultData.getInt(StreetViewActivity.RESULT_KEY_SCORE);
 
-                    Toast.makeText(this, Integer.toString(score), Toast.LENGTH_LONG).show();
-
-                    Intent intent = new Intent(this, ScoreMPActivity.class);
-                    intent.putExtra(EXTRA_FINAL_SCORE, score);
-                    intent.putExtra(EXTRA_ROOM_NAME, mRoomName);
-                    intent.putExtra(EXTRA_NICKNAME, mPlayerName);
-                    startActivity(intent);
+                    mBtnShowScores.callOnClick();
                 }
                 break;
 
